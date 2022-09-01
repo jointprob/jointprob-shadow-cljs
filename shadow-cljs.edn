@@ -1,11 +1,6 @@
 ;; shadow-cljs configuration
-{:source-paths
- ["src/dev"
-  "src/main"
-  "src/test"]
-
- :dependencies
- []
+{
+:deps true
 
  :dev-http {8700 "public"}
 
