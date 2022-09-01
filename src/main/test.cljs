@@ -1,4 +1,4 @@
 (ns test)
 
-(defn init[& args]
+(defn ^:export init[& args]
   (js/alert "got here!"))

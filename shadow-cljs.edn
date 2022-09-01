@@ -7,7 +7,9 @@
  :dependencies
  []
 
- :builds {:my-build-id {:output-dir "target/"
-                        :asset-path "."
+ :dev-http {8700 "public"}
+
+ :builds {:my-build-id {:output-dir "public/js/compiled"
+                        :asset-path "/js/compiled"
                         :target     :browser
                         :modules {:main {:init-fn test/init}}}}}
