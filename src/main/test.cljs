@@ -1,17 +1,26 @@
 (ns test
   (:require [reagent.core :as r]
-            [reagent.dom :as rdom]))
+            [reagent.dom :as rdom]
+            [oz.core :as oz]))
 
-(defonce app-state (r/atom {:text "shadow-cljs is running and watching! 💪"}))
-
-(defn hello-world []
+(defn car-chart []
   [:div
-   [:h1 (:text @app-state)]
-   [:h3 "Edit this and watch it change!"]])
+   [oz/vega-lite {:data {:url "data/cars.json"},
+                  :mark "point"
+                 :width 400,
+                 :height 300,
+                 :background "floralwhite",
+                 :encoding
+                 {:x {:field "displ", :type "quantitative"},
+                  :y {:field "hwy", :type "quantitative"},
+                  :color {:field "manufacturer", :type "nominal"},
+                  :tooltip
+                  [{:field "displ", :type "quantitative"}
+                   {:field "hwy", :type "quantitative"}]}}]])
 
 (defn ^:dev/after-load start []
   (js/console.log "start")
-  (rdom/render [hello-world]
+  (rdom/render [car-chart]
                (. js/document (getElementById "app"))))
 
 (defn ^:export init []
