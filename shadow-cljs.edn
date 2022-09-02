@@ -7,4 +7,4 @@
  :builds {:my-build-id {:output-dir "public/js/compiled"
                         :asset-path "/js/compiled"
                         :target     :browser
-                        :modules {:main {:init-fn test/init}}}}}
+                        :modules {:main {:init-fn core/init}}}}}
