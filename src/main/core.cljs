@@ -69,6 +69,9 @@
 
 (defn page []
   [:div
+   [:div 
+    [:img {:src "imgs/posterior-eq.png" :width "45%"}]
+    [:img {:src "imgs/binomial-eq.png" :width "45%"}]]
    [oz/vega-lite (graph-posterior-dis @samples)]
    [:div
     [:button#play
@@ -101,9 +104,9 @@
        "Clear samples"]
       nil)
     (let [[n land water] (d/count-land-or-water @samples)]
-      (str "No. of possible sequences of " water " water sample(s) and " land " land sample(s) : " 
+      (str "No. of possible sequences of " water " water sample(s) and " land " land sample(s) : "
            (d/n-of-permutations water n)))]
-    [:div (str "  " @samples)]])
+   [:div (str "  " @samples)]])
 
 (defn ^:dev/after-load start []
   (js/console.log "start")
