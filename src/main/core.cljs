@@ -5,7 +5,7 @@
             [graphs :as g]
             [dbinomial :as d]))
 
-(defonce random-samples (into []  (take 20 (repeatedly (fn [] (if (>= 0.6 (rand)) :w :l))))))
+(defonce random-samples (into []  (take 50 (repeatedly (fn [] (if (>= 0.6 (rand)) :w :l))))))
 (defonce samples (r/atom '()))
 
 (def coll-p (map #(/ % 200) (range 0 201)))
@@ -19,19 +19,27 @@
                         (d/r-likelihood-from-samples coll-p samples)
                         d/standardize))]})
 
-(defn one-more-sample [samples]
-  (take (inc (count samples)) random-samples))
+(defn more-samples-available [samples]
+  (< (count samples) (count random-samples)))
 
-(defn ^:dev/after-load start []
-  (js/console.log "start")
-  (rdom/render [:div
-                ; [oz/vega-lite (graph-posterior-dis @samples)]
+(defn one-more-sample [samples]
+  (if (more-samples-available samples) 
+    (take (inc (count samples)) random-samples)
+    '()))
+
+(defn page []
+  [:div
+                [oz/vega-lite (graph-posterior-dis @samples)]
                 [:div [:button
                  {:onClick (fn []
                              (js/console.log (str "Button pressed - samples " @samples))
                              (swap! samples one-more-sample))}
-                 "Next sample"]
-                [:div (str @samples)]]]
+                 (if (more-samples-available @samples) "Next sample" "Clear samples")]
+                 (str "  " @samples)]])
+
+(defn ^:dev/after-load start []
+  (js/console.log "start")
+  (rdom/render [page]
                (. js/document (getElementById "app"))))
 
 (defn ^:export init []
