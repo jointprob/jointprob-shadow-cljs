@@ -27,9 +27,11 @@
   (rdom/render [:div
                 [oz/vega-lite (graph-posterior-dis @samples)]
                 [:div [:button
-                 {:onClick (fn [] (swap! samples one-more-sample))}
+                 {:onClick (fn []
+                             (js/console.log (str "Button pressed - samples " @samples))
+                             (swap! samples one-more-sample))}
                  "Next sample"]
-                [:div @samples]]]
+                [:div (str @samples)]]]
                (. js/document (getElementById "app"))))
 
 (defn ^:export init []
