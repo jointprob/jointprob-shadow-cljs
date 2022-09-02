@@ -27,15 +27,27 @@
     (take (inc (count samples)) random-samples)
     '()))
 
+(defn play []
+  (js/console.log "Play pressed")
+  (swap! samples one-more-sample)
+
+  (if (more-samples-available @samples)
+    (js/setTimeout play 500)
+    nil))
+
 (defn page []
   [:div
-                [oz/vega-lite (graph-posterior-dis @samples)]
-                [:div [:button
-                 {:onClick (fn []
-                             (js/console.log (str "Button pressed - samples " @samples))
-                             (swap! samples one-more-sample))}
-                 (if (more-samples-available @samples) "Next sample" "Clear samples")]
-                 (str "  " @samples)]])
+   [oz/vega-lite (graph-posterior-dis @samples)]
+   [:div
+    [:button#play
+     {:onClick play}
+     "▶️"]
+    [:button
+     {:onClick (fn []
+                 (js/console.log (str "Button pressed - samples " @samples))
+                 (swap! samples one-more-sample))}
+     (if (more-samples-available @samples) "Next sample" "Clear samples")]
+    (str "  " @samples)]])
 
 (defn ^:dev/after-load start []
   (js/console.log "start")
