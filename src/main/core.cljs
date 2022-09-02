@@ -25,7 +25,7 @@
 (defn ^:dev/after-load start []
   (js/console.log "start")
   (rdom/render [:div
-                [oz/vega-lite (graph-posterior-dis @samples)]
+                ; [oz/vega-lite (graph-posterior-dis @samples)]
                 [:div [:button
                  {:onClick (fn []
                              (js/console.log (str "Button pressed - samples " @samples))
