@@ -41,6 +41,8 @@ jobs:
         run: npm install
       - name: Setup Clojure
         uses: DeLaGuardo/setup-clojure@9.5
+        with:
+          cli: 1.11.1.1149
         # You may pin to the exact commit or the version.
         # uses: DeLaGuardo/setup-clojure@05cb4bfdf57855f122e75b71e45224775cdfc4a0
       - name: shadow-cljs release build 
