@@ -68,10 +68,10 @@
 
 (defn play []
   (swap! app-state one-more-sample)
-
-  (if (more-samples-available (:samples @app-state))
-    (swap! app-state assoc-in [:play-timeout-ID] (js/setTimeout play 1000))
-    nil))
+  (swap! app-state assoc-in [:play-timeout-ID]
+         (if (more-samples-available (:samples @app-state))
+           (js/setTimeout play 1000)
+           nil)))
 
 
 (defn pause []
