@@ -5,12 +5,11 @@
             [graphs :as g]
             [dbinomial :as d]))
 
-(defonce samples (r/atom []))
+(defonce app-state (r/atom {:samples []}))
 
 (def grid-p (map #(/ % 200) (range 0 201)))
 
 (defn graph-posterior-dis [samples]
-  
   (let [prior-title (if (last samples)
                       "Prior before new sample"
                       "Prior")
@@ -58,15 +57,18 @@
 
 
 (defn more-samples-available [samples]
-  (< (count samples) 50))
+  (< (count samples) 100))
 
-(defn one-more-sample [samples]
-  (conj samples (if (>= 0.6 (rand)) :w :l)))
+(defn one-more-sample [{:keys [samples] :as state}]
+  (assoc-in state [:samples] (conj samples (if (>= 0.6 (rand)) :w :l))))
+
+(defn one-less-sample [{:keys [samples] :as state}]
+  (assoc-in state [:samples] (butlast samples)))
 
 (defn play []
-  (swap! samples one-more-sample)
+  (swap! app-state one-more-sample)
 
-  (if (more-samples-available @samples)
+  (if (more-samples-available (:samples @app-state))
     (js/setTimeout play 1000)
     nil))
 
@@ -75,41 +77,41 @@
    [:div 
     [:img {:src "imgs/posterior-eq.png" :width "45%"}]
     [:img {:src "imgs/binomial-eq.png" :width "45%"}]]
-   [oz/vega-lite (graph-posterior-dis @samples)]
+   [oz/vega-lite (graph-posterior-dis (:samples @app-state))]
    [:div
     [:button#play
      {:onClick (fn []
                  (js/console.log "Play pressed")
-                 (if (more-samples-available @samples)
+                 (if (more-samples-available (:samples @app-state))
                    nil
-                   (reset! samples []))
+                   (swap! @app-state assoc-in [:samples] []))
                  (play))}
      "▶️"]
-    (if (more-samples-available @samples)
+    (if (more-samples-available (:samples @app-state))
       [:button
        {:onClick (fn []
-                   (js/console.log (str "Next sample - samples " @samples))
-                   (swap! samples one-more-sample))}
-       (if (more-samples-available @samples) "Next sample" "Clear samples")]
+                   (js/console.log (str "Next sample - samples " (:samples @app-state)))
+                   (swap! @app-state one-more-sample))}
+       (if (more-samples-available (:samples @app-state)) "Next sample" "Clear samples")]
       nil)
-    (if (last @samples)
+    (if (last (:samples @app-state))
       [:button
        {:onClick (fn []
-                   (js/console.log (str "Remove 1 sample " @samples))
-                   (swap! samples butlast))}
+                   (js/console.log (str "Remove 1 sample " (:samples @app-state)))
+                   (swap! @app-state one-less-sample))}
        "Remove 1 sample"]
       nil)
-    (if (last @samples)
+    (if (last (:samples @app-state))
       [:button
        {:onClick (fn []
-                   (js/console.log (str "Clear samples " @samples))
-                   (reset! samples '()))}
+                   (js/console.log (str "Clear samples " (:samples @app-state)))
+                   (swap! app-state assoc-in :samples []))}
        "Clear samples"]
       nil)
-    (let [[n land water] (d/count-land-or-water @samples)]
+    (let [[n land water] (d/count-land-or-water (:samples @app-state))]
       (str "No. of possible sequences of " water " water sample(s) and " land " land sample(s) : "
            (d/n-of-permutations water n)))]
-   [:div (str "  " @samples)]])
+   [:div (str "  " (:samples @app-state))]])
 
 (defn ^:dev/after-load start []
   (js/console.log "start")
