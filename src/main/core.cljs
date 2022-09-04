@@ -59,7 +59,7 @@
 
 
 (defn more-samples-available [samples]
-  (< (count samples) 100))
+  (< (count samples) 200))
 
 (defn random-sample [{:keys [samples] :as state}]
   (assoc-in state [:samples] (conj samples (if (>= 0.6 (rand)) :w :l))))
