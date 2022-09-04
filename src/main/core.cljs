@@ -84,6 +84,7 @@
     [:img {:src "imgs/posterior-eq.png" :width "45%"}]
     [:img {:src "imgs/binomial-eq.png" :width "45%"}]]
    [oz/vega-lite (graph-posterior-dis (:samples @app-state))]
+   [:div (str "  " (:samples @app-state))]
    [:div
     (if (:play-timeout-ID @app-state)
       [:button#pause
@@ -120,10 +121,14 @@
                    (swap! app-state assoc-in [:samples] []))}
        "Clear samples"]
       nil)
-    (let [[n land water] (d/count-land-or-water (:samples @app-state))]
-      (str "No. of possible sequences of " water " water sample(s) and " land " land sample(s) : "
-           (d/n-of-permutations water n)))]
-   [:div (str "  " (:samples @app-state))]])
+    (let [[n land water] (d/count-land-or-water (:samples @app-state))
+         permutations (str "No. of possible sequences of " 
+                    water 
+                    " water sample(s) and " 
+                    land
+                    " land sample(s) : "
+                    (d/n-of-permutations water n))]
+      [:div permutations])]])
 
 (defn ^:dev/after-load start []
   (js/console.log "start")
