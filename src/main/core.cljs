@@ -6,7 +6,8 @@
             [dbinomial :as d]))
 
 (defonce app-state (r/atom {:samples []
-                            :play-timeout-ID nil}))
+                            :play-timeout-ID nil
+                            :speed 1000}))
 
 (def grid-p (map #(/ % 200) (range 0 201)))
 
@@ -70,7 +71,7 @@
   (swap! app-state one-more-sample)
   (swap! app-state assoc-in [:play-timeout-ID]
          (if (more-samples-available (:samples @app-state))
-           (js/setTimeout play 1000)
+           (js/setTimeout play (:speed @app-state))
            nil)))
 
 
@@ -79,7 +80,7 @@
   (swap! app-state assoc-in [:play-timeout-ID] nil))
 
 (defn page []
-  [:div
+  [:div#buttons
    [:div
     [:img {:src "imgs/posterior-eq.png" :width "45%"}]
     [:img {:src "imgs/binomial-eq.png" :width "45%"}]]
@@ -100,6 +101,13 @@
                      (swap! app-state assoc-in [:samples] []))
                    (play))}
        "▶️"])
+    "Speed : "
+    [:input {:type "range" :value (:speed @app-state) :min 125 :max 2000 :step 125
+             :tooltip (str " - new sample every " (/ (:speed @app-state) 1000) " seconds")
+             :on-change (fn [e]
+                          (let [new-value (js/parseInt (.. e -target -value))]
+                            (swap! app-state assoc-in [:speed] new-value)))}]
+    (str " - new sample every " (/ (:speed @app-state) 1000) " seconds")
     (if (more-samples-available (:samples @app-state))
       [:button
        {:onClick (fn []
@@ -122,12 +130,12 @@
        "Clear samples"]
       nil)
     (let [[n land water] (d/count-land-or-water (:samples @app-state))
-         permutations (str "No. of possible sequences of " 
-                    water 
-                    " water sample(s) and " 
-                    land
-                    " land sample(s) : "
-                    (d/n-of-permutations water n))]
+          permutations (str "No. of possible sequences of "
+                            water
+                            " water sample(s) and "
+                            land
+                            " land sample(s) : "
+                            (d/n-of-permutations water n))]
       [:div permutations])]])
 
 (defn ^:dev/after-load start []
