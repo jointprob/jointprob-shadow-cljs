@@ -5,7 +5,8 @@
             [graphs :as g]
             [dbinomial :as d]))
 
-(defonce app-state (r/atom {:samples []}))
+(defonce app-state (r/atom {:samples []
+                            :play-timeout-ID nil}))
 
 (def grid-p (map #(/ % 200) (range 0 201)))
 
@@ -31,13 +32,13 @@
                           (d/r-likelihood-from-samples grid-p (list (last samples))))
 
         eq2 (str "Pr(" water "," land "|p)")
-        rlikelihood-graph-one-perm 
+        rlikelihood-graph-one-perm
         (g/probability-dis
          (str  "Probability of This (" water "," land ") Sequence")
          eq2
          grid-p
          (d/r-likelihood-from-samples-simple grid-p samples))
-        rlikelihood-graph-all-perms 
+        rlikelihood-graph-all-perms
         (g/probability-dis
          (str "Probability of Any (" water "," land ") Sequence")
          eq2
@@ -45,15 +46,15 @@
          (d/r-likelihood-from-samples grid-p samples))
         pos-graph (g/probability-dis "Posterior Probability (standardized)"
                                      "Pr(p|W,L)" grid-p
-                           (->
-                            (d/r-likelihood-from-samples grid-p samples)
-                            d/standardize))]
-   {:vconcat
-    (if (last samples)
-      [{:hconcat [n-graph prior-graph new-sample-graph]}
+                                     (->
+                                      (d/r-likelihood-from-samples grid-p samples)
+                                      d/standardize))]
+    {:vconcat
+     (if (last samples)
+       [{:hconcat [n-graph prior-graph new-sample-graph]}
         {:hconcat [rlikelihood-graph-one-perm rlikelihood-graph-all-perms pos-graph]}]
-      [{:hconcat [n-graph prior-graph]}
-       {:hconcat [rlikelihood-graph-one-perm rlikelihood-graph-all-perms pos-graph]}])}))
+       [{:hconcat [n-graph prior-graph]}
+        {:hconcat [rlikelihood-graph-one-perm rlikelihood-graph-all-perms pos-graph]}])}))
 
 
 (defn more-samples-available [samples]
@@ -63,49 +64,60 @@
   (assoc-in state [:samples] (conj samples (if (>= 0.6 (rand)) :w :l))))
 
 (defn one-less-sample [{:keys [samples] :as state}]
-  (assoc-in state [:samples] (butlast samples)))
+  (assoc-in state [:samples] (into [] (butlast samples))))
 
 (defn play []
   (swap! app-state one-more-sample)
 
   (if (more-samples-available (:samples @app-state))
-    (js/setTimeout play 1000)
+    (swap! app-state assoc-in [:play-timeout-ID] (js/setTimeout play 1000))
     nil))
+
+
+(defn pause []
+  (js/clearTimeout (:play-timeout-ID @app-state))
+  (swap! app-state assoc-in [:play-timeout-ID] nil))
 
 (defn page []
   [:div
-   [:div 
+   [:div
     [:img {:src "imgs/posterior-eq.png" :width "45%"}]
     [:img {:src "imgs/binomial-eq.png" :width "45%"}]]
    [oz/vega-lite (graph-posterior-dis (:samples @app-state))]
    [:div
-    [:button#play
-     {:onClick (fn []
-                 (js/console.log "Play pressed")
-                 (if (more-samples-available (:samples @app-state))
-                   nil
-                   (swap! @app-state assoc-in [:samples] []))
-                 (play))}
-     "▶️"]
+    (if (:play-timeout-ID @app-state)
+      [:button#pause
+       {:onClick (fn []
+                   (js/console.log "Pause pressed")
+                   (pause))}
+       "⏸"]
+      [:button#play
+       {:onClick (fn []
+                   (js/console.log "Play pressed")
+                   (if (more-samples-available (:samples @app-state))
+                     nil
+                     (swap! app-state assoc-in [:samples] []))
+                   (play))}
+       "▶️"])
     (if (more-samples-available (:samples @app-state))
       [:button
        {:onClick (fn []
-                   (js/console.log (str "Next sample - samples " (:samples @app-state)))
-                   (swap! @app-state one-more-sample))}
-       (if (more-samples-available (:samples @app-state)) "Next sample" "Clear samples")]
+                   (js/console.log (str "New sample - samples " (:samples @app-state)))
+                   (swap! app-state one-more-sample))}
+       (if (more-samples-available (:samples @app-state)) "New sample" "Clear samples")]
       nil)
     (if (last (:samples @app-state))
       [:button
        {:onClick (fn []
                    (js/console.log (str "Remove 1 sample " (:samples @app-state)))
-                   (swap! @app-state one-less-sample))}
-       "Remove 1 sample"]
+                   (swap! app-state one-less-sample))}
+       "Remove a sample"]
       nil)
     (if (last (:samples @app-state))
       [:button
        {:onClick (fn []
                    (js/console.log (str "Clear samples " (:samples @app-state)))
-                   (swap! app-state assoc-in :samples []))}
+                   (swap! app-state assoc-in [:samples] []))}
        "Clear samples"]
       nil)
     (let [[n land water] (d/count-land-or-water (:samples @app-state))]
