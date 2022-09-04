@@ -111,7 +111,7 @@
              :on-change (fn [e]
                           (let [new-value (js/parseInt (.. e -target -value))]
                             (swap! app-state assoc-in [:speed] new-value)))}]
-    (str " - new sample every " (/ (:speed @app-state) 1000) " seconds")
+    (str (.toFixed (/ 1000 (:speed @app-state)) 2) " samples/second")
     (if (more-samples-available (:samples @app-state))
       [:button
        {:onClick (fn []
