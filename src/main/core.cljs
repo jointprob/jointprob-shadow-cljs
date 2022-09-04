@@ -61,14 +61,18 @@
 (defn more-samples-available [samples]
   (< (count samples) 100))
 
-(defn one-more-sample [{:keys [samples] :as state}]
+(defn random-sample [{:keys [samples] :as state}]
   (assoc-in state [:samples] (conj samples (if (>= 0.6 (rand)) :w :l))))
+
+(defn user-sample [{:keys [samples] :as state} water-or-land]
+  (assoc-in state [:samples] (conj samples water-or-land)))
+
 
 (defn one-less-sample [{:keys [samples] :as state}]
   (assoc-in state [:samples] (into [] (butlast samples))))
 
 (defn play []
-  (swap! app-state one-more-sample)
+  (swap! app-state random-sample)
   (swap! app-state assoc-in [:play-timeout-ID]
          (if (more-samples-available (:samples @app-state))
            (js/setTimeout play (:speed @app-state))
@@ -112,8 +116,22 @@
       [:button
        {:onClick (fn []
                    (js/console.log (str "New sample - samples " (:samples @app-state)))
-                   (swap! app-state one-more-sample))}
-       (if (more-samples-available (:samples @app-state)) "New sample" "Clear samples")]
+                   (swap! app-state random-sample))}
+       "Random sample"]
+      nil)
+    (if (more-samples-available (:samples @app-state))
+      [:button
+       {:onClick (fn []
+                   (js/console.log (str "New :w sample - samples " (:samples @app-state)))
+                   (swap! app-state user-sample :w))}
+       ":w"]
+      nil)
+    (if (more-samples-available (:samples @app-state))
+      [:button
+       {:onClick (fn []
+                   (js/console.log (str "New :w sample - samples " (:samples @app-state)))
+                   (swap! app-state user-sample :l))}
+       ":l"]
       nil)
     (if (last (:samples @app-state))
       [:button
