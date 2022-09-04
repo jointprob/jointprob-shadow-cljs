@@ -5,8 +5,7 @@
             [graphs :as g]
             [dbinomial :as d]))
 
-(defonce random-samples (into []  (take 50 (repeatedly (fn [] (if (>= 0.6 (rand)) :w :l))))))
-(defonce samples (r/atom '()))
+(defonce samples (r/atom []))
 
 (def grid-p (map #(/ % 200) (range 0 201)))
 
@@ -59,10 +58,10 @@
 
 
 (defn more-samples-available [samples]
-  (< (count samples) (count random-samples)))
+  (< (count samples) 50))
 
 (defn one-more-sample [samples]
-  (take (inc (count samples)) random-samples))
+  (conj samples (if (>= 0.6 (rand)) :w :l)))
 
 (defn play []
   (swap! samples one-more-sample)
@@ -83,7 +82,7 @@
                  (js/console.log "Play pressed")
                  (if (more-samples-available @samples)
                    nil
-                   (reset! samples '()))
+                   (reset! samples []))
                  (play))}
      "▶️"]
     (if (more-samples-available @samples)
