@@ -19,28 +19,32 @@
         [_ last-land last-water] (d/count-land-or-water (butlast samples))
         [_ new-land new-water] (d/count-land-or-water (list (last samples)))
         n-graph (g/land-or-water n land water)
-        prior-graph (g/probability-dis prior-title 
-                                       (str "Pr(" last-water "," last-land "|p)")
-                                       grid-p
-                                       (d/r-likelihood-from-samples  grid-p (butlast samples)))
+        prior-graph (g/probability-dis
+                     prior-title
+                     (str "Pr(" last-water "," last-land "|p)")
+                     grid-p
+                     (-> (d/r-likelihood-from-samples  grid-p (butlast samples))
+                         d/standardize))
         eq1 (str "Pr(" new-water "," new-land "|p)")
         new-sample-graph (g/probability-dis
-                          (str "Likelihood of new sample \"" (last samples) "\" " eq1)
+                          (str "Probability of new sample \"" (last samples) "\" " eq1)
                           eq1
                           grid-p
                           (d/r-likelihood-from-samples grid-p (list (last samples))))
 
         eq2 (str "Pr(" water "," land "|p)")
-        rlikelihood-graph-one-perm (g/probability-dis
-                           (str  "Relative Likelihood of This Sequence")
-                           eq2
-                           grid-p
-                           (d/r-likelihood-from-samples-simple grid-p samples))
-        rlikelihood-graph-all-perms (g/probability-dis
-                                     "Relative Likelihood of Any Sequences"
-                                     eq2
-                                     grid-p
-                                     (d/r-likelihood-from-samples grid-p samples))
+        rlikelihood-graph-one-perm 
+        (g/probability-dis
+         (str  "Probability of This (" water "," land ") Sequence")
+         eq2
+         grid-p
+         (d/r-likelihood-from-samples-simple grid-p samples))
+        rlikelihood-graph-all-perms 
+        (g/probability-dis
+         (str "Probability of Any (" water "," land ") Sequence")
+         eq2
+         grid-p
+         (d/r-likelihood-from-samples grid-p samples))
         pos-graph (g/probability-dis "Posterior Probability (standardized)"
                                      "Pr(p|W,L)" grid-p
                            (->
