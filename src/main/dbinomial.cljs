@@ -5,18 +5,17 @@
   [a b]
   (reduce * (repeat b a)))
 
+(defn factorial-div-factorial
+  "factorial of a divided by factorial of b, assuming b < a" [a b]
+  (reduce * (range (inc b) (inc a))))
+
 (defn factorial
   "factorial of a" [a]
-  (apply * (range 1 (inc a))))
-
-#_(defn n-of-permutations [x n]
-    (/ (factorial n)
-       (* (factorial (- n x))
-          (factorial x))))
+  (reduce * (range 1 (inc a))))
 
 ;; shouldn't produce overflow
 (defn n-of-permutations [x n]
-  (/ (reduce * (range n x -1))
+  (/ (factorial-div-factorial n x)
      (factorial (- n x))))
 
 (defn dbinom [x n prob]
@@ -28,7 +27,7 @@
   "Calculate the relative likelihood for a collection of p."
   (map #(dbinom x n %) coll-p))
 
-(defn bayesian-binary-update[found prior coll-p]
+(defn bayesian-binary-update [found prior coll-p]
   (let [update-if-found coll-p    ; range from 0 to 1 inclusive with size elements
         update-if-not-found (map #(- 1 %) coll-p)]
     (map * prior (if found update-if-found update-if-not-found))))
@@ -39,8 +38,8 @@
         times-found x
         times-not-found (- n x)]
     (-> ; repeatedly update depending on times-found and times-not-found :
-      (reduce (fn [last-step _] (bayesian-binary-update true last-step coll-p)) uniform-prior (repeat times-found 1))
-      (#(reduce (fn [last-step _] (bayesian-binary-update false last-step coll-p)) % (repeat times-not-found 1))))))
+     (reduce (fn [last-step _] (bayesian-binary-update true last-step coll-p)) uniform-prior (repeat times-found 1))
+     (#(reduce (fn [last-step _] (bayesian-binary-update false last-step coll-p)) % (repeat times-not-found 1))))))
 
 (defn standardize
   "make average of values in coll r = 1"
@@ -50,8 +49,8 @@
 
 (defn count-land-or-water [samples]
   (let [n (count samples)
-        land (count (filter (partial = :l) samples))
-        water (count (filter (partial = :w) samples))]
+        land (count (filter (partial = \L) samples))
+        water (count (filter (partial = \W) samples))]
     [n land water]))
 
 (defn r-likelihood-from-samples [coll-p samples]
