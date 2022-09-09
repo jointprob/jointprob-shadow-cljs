@@ -32,8 +32,7 @@
         update-if-not-found (map #(- 1 %) coll-p)]
     (map * prior (if found update-if-found update-if-not-found))))
 
-(defn relative-likelihood-simple [x n coll-p]
-  "size is no of samples of distributions - assumes evenly spaced samples from 0 to 1 inclusive."
+(defn relative-likelihood-for-this-sequence [x n coll-p]
   (let [uniform-prior (repeat (count coll-p) 1)
         times-found x
         times-not-found (- n x)]
@@ -57,6 +56,6 @@
   (let [[n _ water] (count-land-or-water samples)]
     (relative-likelihood water n coll-p)))
 
-(defn r-likelihood-from-samples-simple [coll-p samples]
+(defn r-likelihood-from-samples-for-this-sequence [coll-p samples]
   (let [[n _ water] (count-land-or-water samples)]
-    (relative-likelihood-simple water n coll-p)))
+    (relative-likelihood-for-this-sequence water n coll-p)))

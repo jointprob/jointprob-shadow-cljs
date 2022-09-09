@@ -38,7 +38,7 @@
          (str  "Probability of This (" water "," land ") Sequence")
          eq2
          grid-p
-         (d/r-likelihood-from-samples-simple grid-p samples))
+         (d/r-likelihood-from-samples-for-this-sequence grid-p samples))
         rlikelihood-graph-all-perms
         (g/probability-dis
          (str "Probability of Any (" water "," land ") Sequence")
