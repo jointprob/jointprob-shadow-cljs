@@ -61,7 +61,7 @@
 (defn more-samples-available [samples]
   (< (count samples) 200))
 
-(defn random-sample [{:keys [samples] :as state}]
+(defn new-random-sample [{:keys [samples] :as state}]
   (assoc-in state [:samples] (conj samples (if (>= 0.6 (rand)) :w :l))))
 
 (defn user-sample [{:keys [samples] :as state} water-or-land]
@@ -72,7 +72,7 @@
   (assoc-in state [:samples] (into [] (butlast samples))))
 
 (defn play []
-  (swap! app-state random-sample)
+  (swap! app-state new-random-sample)
   (swap! app-state assoc-in [:play-timeout-ID]
          (if (more-samples-available (:samples @app-state))
            (js/setTimeout play (:speed @app-state))
@@ -116,7 +116,7 @@
       [:button
        {:onClick (fn []
                    (js/console.log (str "New sample - samples " (:samples @app-state)))
-                   (swap! app-state random-sample))}
+                   (swap! app-state new-random-sample))}
        "Random sample"]
       nil)
     (if (more-samples-available (:samples @app-state))
