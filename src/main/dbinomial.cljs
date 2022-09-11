@@ -48,8 +48,8 @@
 
 (defn count-land-or-water [samples]
   (let [n (count samples)
-        land (count (filter (partial = \L) samples))
-        water (count (filter (partial = \W) samples))]
+        land (count (filter (partial = :l) samples))
+        water (count (filter (partial = :w) samples))]
     [n land water]))
 
 (defn r-likelihood-from-samples [coll-p samples]
