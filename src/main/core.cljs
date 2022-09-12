@@ -3,7 +3,8 @@
             [reagent.dom :as rdom]
             [oz.core :as oz]
             [graphs :as g]
-            [dbinomial :as d]))
+            [dbinomial :as d]
+            [mathjax-react :as mj]))
 
 (defonce app-state (r/atom {:samples []
                             :play-timeout-ID nil
@@ -87,7 +88,9 @@
   [:div#buttons
    [:div
     [:img {:src "imgs/posterior-eq.png" :width "45%"}]
-    [:img {:src "imgs/binomial-eq.png" :width "45%"}]]
+    [:img {:src "imgs/binomial-eq.png" :width "45%"}]
+
+    [:> mj/MathComponent {:tex "\\int_0^1 x^2\\ dx" :display false}]]
    [oz/vega-lite (graph-posterior-dis (:samples @app-state))]
    [:div (str "  " (:samples @app-state))]
    [:div
