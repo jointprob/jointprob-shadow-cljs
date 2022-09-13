@@ -52,7 +52,8 @@
                  (d/r-likelihood-from-samples-for-this-sequence grid-p samples))
          (g/titles (str  "Probability of This (" water "," land ") Sequence")
                    "% of world that is water"
-                   eq2))
+                   eq2)
+         (g/axis-format :y ".3e"))
         rlikelihood-graph-all-perms
         (g/probability-dis
          (g/data

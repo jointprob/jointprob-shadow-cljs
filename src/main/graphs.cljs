@@ -21,8 +21,11 @@
   [xs ys]
   {:data {:values (map #(hash-map :x %1 :y %2) xs ys)}})
 
+(defn axis-format [axis format]
+  {:encoding {axis {:axis {:format format}}}})
+
 (defn percentage-axis [axis]
-  {:encoding {axis {:axis {:format :p}}}})
+  (axis-format axis "p"))
 
 (defn continuous-x-y-chart[ & vl-maps]
   (apply deep-merge
