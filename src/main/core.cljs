@@ -4,11 +4,13 @@
             [oz.core :as oz]
             [graphs :as g]
             [dbinomial :as d]
-            [mathjax-react :as mj]))
+            [mathjax-react :as mj]
+            [semantic-ui-react :as sui]))
 
 (defonce app-state (r/atom {:samples []
                             :play-timeout-ID nil
                             :speed 1000}))
+
 
 (def grid-p (map #(/ % 200) (range 0 201)))
 
@@ -19,43 +21,60 @@
         [n land water] (d/count-land-or-water samples)
         [_ last-land last-water] (d/count-land-or-water (butlast samples))
         [_ new-land new-water] (d/count-land-or-water (list (last samples)))
-        n-graph (g/land-or-water n land water)
-        prior-graph (g/probability-dis
-                     prior-title
-                     (str "Pr(" last-water "," last-land "|p)")
-                     grid-p
-                     (-> (d/r-likelihood-from-samples  grid-p (butlast samples))
-                         d/standardize))
+        n-graph
+        (g/bar-chart
+         (g/titles (str "n = " n)  "Land (L) or Water (W)?" "Percent of Sample")
+         {:data {:values
+                 [{:x "W" :y (if (zero? n) 0 (/ water n))}
+                  {:x "L" :y (if (zero? n) 0 (/ land n))}]}}
+         (g/percentage-axis :y))
+        prior-before-this-sample-graph
+        (g/probability-dis
+         (g/data grid-p
+                 (-> (d/r-likelihood-from-samples  grid-p (butlast samples))
+                     d/standardize))
+         (g/titles prior-title
+                   "% of world that is water"
+                   (str "Pr(" last-water "," last-land "|p)")))
         eq1 (str "Pr(" new-water "," new-land "|p)")
-        new-sample-graph (g/probability-dis
-                          (str "Probability of new sample \"" (last samples) "\" " eq1)
-                          eq1
-                          grid-p
-                          (d/r-likelihood-from-samples grid-p (list (last samples))))
+        new-sample-graph
+        (g/probability-dis
+         (g/data grid-p
+                 (d/r-likelihood-from-samples grid-p (list (last samples))))
+         (g/titles (str "Probability of new sample \"" (last samples) "\" " eq1)
+                   "% of world that is water"
+                   eq1))
 
         eq2 (str "Pr(" water "," land "|p)")
         rlikelihood-graph-one-perm
         (g/probability-dis
-         (str  "Probability of This (" water "," land ") Sequence")
-         eq2
-         grid-p
-         (d/r-likelihood-from-samples-for-this-sequence grid-p samples))
+         (g/data grid-p
+                 (d/r-likelihood-from-samples-for-this-sequence grid-p samples))
+         (g/titles (str  "Probability of This (" water "," land ") Sequence")
+                   "% of world that is water"
+                   eq2))
         rlikelihood-graph-all-perms
         (g/probability-dis
-         (str "Probability of Any (" water "," land ") Sequence")
-         eq2
-         grid-p
-         (d/r-likelihood-from-samples grid-p samples))
-        pos-graph (g/probability-dis "Posterior Probability (standardized)"
-                                     "Pr(p|W,L)" grid-p
-                                     (->
-                                      (d/r-likelihood-from-samples grid-p samples)
-                                      d/standardize))]
+         (g/data
+          grid-p
+          (d/r-likelihood-from-samples grid-p samples))
+         (g/titles (str "Probability of Any (" water "," land ") Sequence")
+                   "% of world that is water"
+                   eq2))
+        pos-graph
+        (g/probability-dis
+         (g/data grid-p
+                 (->
+                  (d/r-likelihood-from-samples grid-p samples)
+                  d/standardize))
+         (g/titles  "Posterior Probability (standardized)"
+                    "% of world that is water"
+                    "Pr(p|W,L)"))]
     {:vconcat
      (if (last samples)
-       [{:hconcat [n-graph prior-graph new-sample-graph]}
+       [{:hconcat [n-graph prior-before-this-sample-graph new-sample-graph]}
         {:hconcat [rlikelihood-graph-one-perm rlikelihood-graph-all-perms pos-graph]}]
-       [{:hconcat [n-graph prior-graph]}
+       [{:hconcat [n-graph prior-before-this-sample-graph]}
         {:hconcat [rlikelihood-graph-one-perm rlikelihood-graph-all-perms pos-graph]}])}))
 
 
@@ -158,7 +177,11 @@
                             " = ")]
       
       [:div 
-       [buttons]
+       [:> sui/Menu {:fixed :top, :inverted true}
+        [:> sui/Container
+         [buttons]
+         ]]
+       
        
        [:div
         [:p (str "Samples:  " (:samples @app-state))]
