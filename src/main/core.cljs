@@ -84,80 +84,110 @@
   (js/clearTimeout (:play-timeout-ID @app-state))
   (swap! app-state assoc-in [:play-timeout-ID] nil))
 
-(defn page []
-  [:div#buttons
-   [:div
-    [:img {:src "imgs/posterior-eq.png" :width "45%"}]
-    [:img {:src "imgs/binomial-eq.png" :width "45%"}]
 
-    [:> mj/MathComponent {:tex "\\int_0^1 x^2\\ dx" :display false}]]
-   [oz/vega-lite (graph-posterior-dis (:samples @app-state))]
-   [:div (str "  " (:samples @app-state))]
-   [:div
-    (if (:play-timeout-ID @app-state)
-      [:button#pause
-       {:onClick (fn []
-                   (js/console.log "Pause pressed")
-                   (pause))}
-       "⏸"]
-      [:button#play
-       {:onClick (fn []
-                   (js/console.log "Play pressed")
-                   (if (more-samples-available (:samples @app-state))
-                     nil
-                     (swap! app-state assoc-in [:samples] []))
-                   (play))}
-       "▶️"])
-    "Speed : "
-    [:input {:type "range" :value (:speed @app-state) :min 125 :max 2000 :step 125
-             :tooltip (str " - new sample every " (/ (:speed @app-state) 1000) " seconds")
-             :on-change (fn [e]
-                          (let [new-value (js/parseInt (.. e -target -value))]
-                            (swap! app-state assoc-in [:speed] new-value)))}]
-    (str (.toFixed (/ 1000 (:speed @app-state)) 2) " samples/second")
-    (if (more-samples-available (:samples @app-state))
-      [:button
-       {:onClick (fn []
-                   (js/console.log (str "New sample - samples " (:samples @app-state)))
-                   (swap! app-state new-random-sample))}
-       "Random sample"]
-      nil)
-    (if (more-samples-available (:samples @app-state))
-      [:button
-       {:onClick (fn []
-                   (js/console.log (str "New :w sample - samples " (:samples @app-state)))
-                   (swap! app-state user-sample :w))}
-       ":w"]
-      nil)
-    (if (more-samples-available (:samples @app-state))
-      [:button
-       {:onClick (fn []
-                   (js/console.log (str "New :w sample - samples " (:samples @app-state)))
-                   (swap! app-state user-sample :l))}
-       ":l"]
-      nil)
-    (if (last (:samples @app-state))
-      [:button
-       {:onClick (fn []
-                   (js/console.log (str "Remove 1 sample " (:samples @app-state)))
-                   (swap! app-state one-less-sample))}
-       "Remove a sample"]
-      nil)
-    (if (last (:samples @app-state))
-      [:button
-       {:onClick (fn []
-                   (js/console.log (str "Clear samples " (:samples @app-state)))
-                   (swap! app-state assoc-in [:samples] []))}
-       "Clear samples"]
-      nil)
+(defn buttons []
+  [:div#buttons
+   (if (:play-timeout-ID @app-state)
+     [:button#pause
+      {:onClick (fn []
+                  (js/console.log "Pause pressed")
+                  (pause))}
+      "⏸"]
+     [:button#play
+      {:onClick (fn []
+                  (js/console.log "Play pressed")
+                  (if (more-samples-available (:samples @app-state))
+                    nil
+                    (swap! app-state assoc-in [:samples] []))
+                  (play))}
+      "▶️"])
+   "Speed : "
+   [:input {:type "range" :value (:speed @app-state) :min 125 :max 2000 :step 125
+            :tooltip (str " - new sample every " (/ (:speed @app-state) 1000) " seconds")
+            :on-change (fn [e]
+                         (let [new-value (js/parseInt (.. e -target -value))]
+                           (swap! app-state assoc-in [:speed] new-value)))}]
+   (str (.toFixed (/ 1000 (:speed @app-state)) 2) " samples/second")
+   (if (more-samples-available (:samples @app-state))
+     [:button
+      {:onClick (fn []
+                  (js/console.log (str "New sample - samples " (:samples @app-state)))
+                  (swap! app-state new-random-sample))}
+      "Random sample"]
+     nil)
+   (if (more-samples-available (:samples @app-state))
+     [:button
+      {:onClick (fn []
+                  (js/console.log (str "New :w sample - samples " (:samples @app-state)))
+                  (swap! app-state user-sample :w))}
+      ":w"]
+     nil)
+   (if (more-samples-available (:samples @app-state))
+     [:button
+      {:onClick (fn []
+                  (js/console.log (str "New :w sample - samples " (:samples @app-state)))
+                  (swap! app-state user-sample :l))}
+      ":l"]
+     nil)
+   (if (last (:samples @app-state))
+     [:button
+      {:onClick (fn []
+                  (js/console.log (str "Remove 1 sample " (:samples @app-state)))
+                  (swap! app-state one-less-sample))}
+      "Remove a sample"]
+     nil)
+   (if (last (:samples @app-state))
+     [:button
+      {:onClick (fn []
+                  (js/console.log (str "Clear samples " (:samples @app-state)))
+                  (swap! app-state assoc-in [:samples] []))}
+      "Clear samples"]
+     nil)
+   " Randomly generated samples are :w with a probability of 0.6."])
+
+(defn page []
     (let [[n land water] (d/count-land-or-water (:samples @app-state))
-          permutations (str "No. of possible sequences of "
+          permutations (str "Number of possible sequences of "
                             water
-                            " water sample(s) and "
+                            " water sample"
+                            (if (= water 1) "" "s")
+                            " and "
                             land
-                            " land sample(s) : "
-                            (d/n-of-permutations water n))]
-      [:div permutations])]])
+                            " land sample"
+                            (if (= land 1) "" "s")
+                            " = ")]
+      
+      [:div 
+       [buttons]
+       
+       [:div
+        [:p (str "Samples:  " (:samples @app-state))]
+        [:p "W = " water "  L = " land]
+        [:p
+         "Probability of this (W,L) sequence of samples = "
+         [:> mj/MathComponent {:tex "p^{W}(1-p)^L" :display false}]
+         " = "
+         [:> mj/MathComponent {:tex (str "p^{" water "}(1-p)^{" land "}") :display false}]]
+        [:p
+         permutations
+         [:> mj/MathComponent
+          {:tex "\\frac{(W+L)!}{W!L!}" :display false}]
+         " = "
+         [:> mj/MathComponent
+          {:tex (str "\\frac{(" water "+" land ")!}{" water "!" land "!}") :display false}]
+         " = "
+         (d/n-of-permutations water n)]
+        [:p
+         "Probability of any of " (d/n-of-permutations water n) " (W,L) sequence(s) = "
+         [:> mj/MathComponent {:tex "Pr(W,L|p)=\\frac{(W+L)!}{W!L!}p^{W}(1-p)^L" :display false}]
+         " = "
+         [:> mj/MathComponent {:tex (str "\\frac{(" water "+" land ")!}{" water "!" land "!} " "p^{" water "}(1-p)^{" land "}") :display false}]
+         " = "
+         (d/n-of-permutations water n)
+         " "
+         [:> mj/MathComponent {:tex (str "p^{" water "}(1-p)^{" land "}") :display false}]]
+
+        [oz/vega-lite (graph-posterior-dis (:samples @app-state))]]]))
 
 (defn ^:dev/after-load start []
   (js/console.log "start")
