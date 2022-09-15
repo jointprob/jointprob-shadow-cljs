@@ -1,2 +1,10 @@
 button {font-size: 1.2em;
 margin: 0.2em;}
+
+
+.demo-example-hide {
+    margin-top: 3px;
+    float: right;
+    cursor: pointer;
+    color: #bbb;
+}

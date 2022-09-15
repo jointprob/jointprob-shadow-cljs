@@ -191,6 +191,21 @@
      nil)
    " Randomly generated samples are :w with a probability of 0.6."])
 
+
+(defn collapsible [{:keys [comp heading]}]
+  (r/with-let [showing (r/atom true)]
+    [:div
+     (when comp
+       [:div.demo-example.clearfix
+        [:a.demo-example-hide {:on-click (fn [e]
+                                           (.preventDefault e)
+                                           (swap! showing not)
+                                           nil)}
+         (if @showing "hide" "show")]
+        (when heading
+          [:h3.demo-heading heading])
+        (when @showing comp)])]))
+
 (defn page []
     (let [[n land water] (d/count-land-or-water (:samples @app-state))
           permutations (str "Number of possible sequences of "
@@ -203,59 +218,64 @@
                             (if (= land 1) "" "s")
                             " = ")]
       [:div
-       [:div
-        [:label "Prior before any data "]
-        (into (vector) (concat [:select.form-control {:field :list
-                                                      :value (:prior @app-state)
-                                                      :id :many.options
-                                                      :on-change #(swap! app-state assoc-in [:prior] (.. % -target -value))}]
-                             (map #(vector :option {:key (first %)} (first %)) priors)))]
-       [oz/vega-lite (g/probability-dis
-                      (g/data grid-p
-                              (get priors (:prior @app-state)))
-                      (g/titles "Prior before any data"
-                                "% of world that is water"
-                                "Pr(p)"))]
+       [collapsible {:heading "Prior"
+                     :comp
+                     [:div
+
+                      [:label "Prior before any data "]
+                      (into (vector) (concat [:select.form-control {:field :list
+                                                                    :value (:prior @app-state)
+                                                                    :id :many.options
+                                                                    :on-change #(swap! app-state assoc-in [:prior] (.. % -target -value))}]
+                                             (map #(vector :option {:key (first %)} (first %)) priors)))
+                      [:div
+                       [oz/vega-lite (g/probability-dis
+                                     (g/data grid-p
+                                             (get priors (:prior @app-state)))
+                                     (g/titles "Prior before any data"
+                                               "% of world that is water"
+                                               "Pr(p)"))]]]}]
        [buttons]
-       [:div
-        [:p (str "Samples:  " (:samples @app-state))]
-        [:p "W = " water " ;  L = " land]
-        [:p
-         "Probability of this (W,L) sequence of samples = "
-         [:> mj/MathComponent {:tex "p^{W}(1-p)^L" :display false}]
-         " = "
-         [:> mj/MathComponent {:tex (str "p^{" water "}(1-p)^{" land "}") :display false}]]
-        [:p
-         permutations
-         [:> mj/MathComponent
-          {:tex "\\frac{(W+L)!}{W!L!}" :display false}]
-         " = "
-         [:> mj/MathComponent
-          {:tex (str "\\frac{(" water "+" land ")!}{" water "!" land "!}") :display false}]
-         " = "
-         (d/n-of-permutations water n)]
-        [:p
-         "Probability of any of " (d/n-of-permutations water n) " (W,L) sequence(s) = "
-         [:> mj/MathComponent {:tex "Pr(W,L|p)=\\frac{(W+L)!}{W!L!}p^{W}(1-p)^L" :display false}]
-         " = "
-         [:> mj/MathComponent {:tex (str "\\frac{(" water "+" land ")!}{" water "!" land "!} "
-                                         "p^{" water "}(1-p)^{" land "}") :display false}]
-         " = "
-         (d/n-of-permutations water n)
-         " "
-         [:> mj/MathComponent {:tex (str "p^{" water "}(1-p)^{" land "}") :display false}]]
-        [:p
-         "Posterior = "
-         [:> mj/MathComponent {:tex "Pr(p \\mid W, L)= 
+       [collapsible
+        {:heading "Formulae"
+         :comp
+         [:div
+          [:p (str "Samples:  " (:samples @app-state))]
+          [:p "W = " water " ;  L = " land]
+          [:p
+           "Probability of this (W,L) sequence of samples = "
+           [:> mj/MathComponent {:tex "p^{W}(1-p)^L" :display false}]
+           " = "
+           [:> mj/MathComponent {:tex (str "p^{" water "}(1-p)^{" land "}") :display false}]]
+          [:p
+           permutations
+           [:> mj/MathComponent
+            {:tex "\\frac{(W+L)!}{W!L!}" :display false}]
+           " = "
+           [:> mj/MathComponent
+            {:tex (str "\\frac{(" water "+" land ")!}{" water "!" land "!}") :display false}]
+           " = "
+           (d/n-of-permutations water n)]
+          [:p
+           "Probability of any of " (d/n-of-permutations water n) " (W,L) sequence(s) = "
+           [:> mj/MathComponent {:tex "Pr(W,L|p)=\\frac{(W+L)!}{W!L!}p^{W}(1-p)^L" :display false}]
+           " = "
+           [:> mj/MathComponent {:tex (str "\\frac{(" water "+" land ")!}{" water "!" land "!} "
+                                           "p^{" water "}(1-p)^{" land "}") :display false}]
+           " = "
+           (d/n-of-permutations water n)
+           " "
+           [:> mj/MathComponent {:tex (str "p^{" water "}(1-p)^{" land "}") :display false}]]
+          [:p
+           "Posterior = "
+           [:> mj/MathComponent {:tex "Pr(p \\mid W, L)= 
                                      \\frac{\\text { Probability of the data } \\times 
                                      \\text { Prior }}{\\text { Average probability of the data}} = " :display false}]
 
-         [:> mj/MathComponent {:tex "\\frac{Pr(W, L \\mid p) Pr(p)}{Pr(W, L)}" :display false}]
-         " where "
-         [:> mj/MathComponent {:tex "\\text { Average probability of the data} = Pr(W, L) = \\int _0 ^1 {Pr(W, L \\mid p) Pr(p)}dp" :display false}]]
-
-
-        [oz/vega-lite (graph-posterior-dis (:samples @app-state))]]]))
+           [:> mj/MathComponent {:tex "\\frac{Pr(W, L \\mid p) Pr(p)}{Pr(W, L)}" :display false}]
+           " where "
+           [:> mj/MathComponent {:tex "\\text { Average probability of the data} = Pr(W, L) = \\int _0 ^1 {Pr(W, L \\mid p) Pr(p)}dp" :display false}]]]}]
+        [oz/vega-lite (graph-posterior-dis (:samples @app-state))]]))
 
 (defn ^:dev/after-load start []
   (js/console.log "start")
