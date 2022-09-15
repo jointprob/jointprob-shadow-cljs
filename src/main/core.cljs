@@ -4,8 +4,7 @@
             [oz.core :as oz]
             [graphs :as g]
             [dbinomial :as d]
-            [mathjax-react :as mj]
-            [semantic-ui-react :as sui]))
+            [mathjax-react :as mj]))
 
 (defonce app-state (r/atom {:samples []
                             :play-timeout-ID nil
@@ -177,15 +176,9 @@
                             (if (= land 1) "" "s")
                             " = ")]
       
-      [:div 
-       [:> sui/Menu {:fixed :top, :inverted true}
-        [:> sui/Container
-         [buttons]
-         ]]
-       
-       
+      [:div
+       [buttons]
        [:div
-
         [:p (str "Samples:  " (:samples @app-state))]
         [:p "W = " water " ;  L = " land]
         [:p
