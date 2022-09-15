@@ -6,12 +6,19 @@
             [dbinomial :as d]
             [mathjax-react :as mj]))
 
-(defonce app-state (r/atom {:samples []
+(defonce app-state (r/atom {:prior "Uniform"
+                            :samples []
                             :play-timeout-ID nil
                             :speed 1000}))
 
 
 (def grid-p (map #(/ % 200) (range 0 201)))
+
+(def priors {"Uniform" (repeat 201 1)
+             "Step up" (map #(if (<= % 0.5) 0 2) grid-p)
+             "Step down" (map #(if (<= % 0.5) 2 0) grid-p)
+             "Ramp up and down" (-> (map #(if (<= % 0.5) (d/exp 1.08 (* 200 %)) (d/exp 1.08 (* 200 (- 1 %)))) grid-p)
+                                    (d/standardize))})
 
 (defn graph-posterior-dis [samples]
   (let [prior-title (if (last samples)
@@ -30,8 +37,9 @@
         prior-before-this-sample-graph
         (g/probability-dis
          (g/data grid-p
-                 (-> (d/r-likelihood-from-samples  grid-p (butlast samples))
-                     d/standardize))
+                 (->> (d/r-likelihood-from-samples  grid-p (butlast samples))
+                      (map * (get priors (:prior @app-state)))
+                      d/standardize))
          (g/titles prior-title
                    "% of world that is water"
                    (str "Pr(" last-water "," last-land " ⎹ p)")))
@@ -64,8 +72,9 @@
         pos-graph
         (g/probability-dis
          (g/data grid-p
-                 (->
+                 (->>
                   (d/r-likelihood-from-samples grid-p samples)
+                  (map * (get priors (:prior @app-state)))
                   d/standardize))
          (g/titles  "Posterior Pr(p ⎹ W,L)"
                     "% of world that is water"
@@ -175,8 +184,20 @@
                             " land sample"
                             (if (= land 1) "" "s")
                             " = ")]
-      
       [:div
+       [:div
+        [:label "Prior before any data "]
+        (into (vector) (concat [:select.form-control {:field :list
+                                                      :value (:prior @app-state)
+                                                      :id :many.options
+                                                      :on-change #(swap! app-state assoc-in [:prior] (.. % -target -value))}]
+                             (map #(vector :option {:key (first %)} (first %)) priors)))]
+       [oz/vega-lite (g/probability-dis
+                      (g/data grid-p
+                              (get priors (:prior @app-state)))
+                      (g/titles "Prior before any data"
+                                "% of world that is water"
+                                "Pr(p)"))]
        [buttons]
        [:div
         [:p (str "Samples:  " (:samples @app-state))]
