@@ -86,12 +86,20 @@
        [{:hconcat [n-graph prior-before-this-sample-graph]}
         {:hconcat [rlikelihood-graph-one-perm rlikelihood-graph-all-perms pos-graph]}])}))
 
+(def max-samples 200)
 
-(defn more-samples-available [samples]
-  (< (count samples) 200))
+(defn not-reached-sample-within-10-of-limit [samples]
+  (<= (+ (count samples) 10) max-samples))
+
+(defn not-reached-sample-limit [samples]
+  (< (count samples) max-samples))
 
 (defn new-random-sample [{:keys [samples] :as state}]
   (assoc-in state [:samples] (conj samples (if (>= 0.6 (rand)) :w :l))))
+
+(defn ten-new-random-samples [{:keys [samples] :as state}]
+  (assoc-in state [:samples] (into [] (concat samples (repeatedly 10 #(if (>= 0.6 (rand)) :w :l))))))
+
 
 (defn user-sample [{:keys [samples] :as state} water-or-land]
   (assoc-in state [:samples] (conj samples water-or-land)))
@@ -100,10 +108,16 @@
 (defn one-less-sample [{:keys [samples] :as state}]
   (assoc-in state [:samples] (into [] (butlast samples))))
 
+(defn ten-less-samples [{:keys [samples] :as state}]
+  (if (> (count samples) 10)
+    (assoc-in state [:samples] (into [] (drop-last 10 samples)))
+    (assoc-in state [:samples] (vector))))
+
+
 (defn play []
   (swap! app-state new-random-sample)
   (swap! app-state assoc-in [:play-timeout-ID]
-         (if (more-samples-available (:samples @app-state))
+         (if (not-reached-sample-limit (:samples @app-state))
            (js/setTimeout play (:speed @app-state))
            nil)))
 
@@ -124,7 +138,7 @@
      [:button#play
       {:onClick (fn []
                   (js/console.log "Play pressed")
-                  (if (more-samples-available (:samples @app-state))
+                  (if (not-reached-sample-limit (:samples @app-state))
                     nil
                     (swap! app-state assoc-in [:samples] []))
                   (play))}
@@ -136,25 +150,24 @@
                          (let [new-value (js/parseInt (.. e -target -value))]
                            (swap! app-state assoc-in [:speed] new-value)))}]
    (str (.toFixed (/ 1000 (:speed @app-state)) 2) " samples/second")
-   (if (more-samples-available (:samples @app-state))
+   (if (not-reached-sample-limit (:samples @app-state))
      [:button
-      {:onClick (fn []
-                  (js/console.log (str "New sample - samples " (:samples @app-state)))
-                  (swap! app-state new-random-sample))}
+      {:onClick (fn [] (swap! app-state new-random-sample))}
       "Random sample"]
      nil)
-   (if (more-samples-available (:samples @app-state))
+   (if (not-reached-sample-within-10-of-limit (:samples @app-state))
      [:button
-      {:onClick (fn []
-                  (js/console.log (str "New :w sample - samples " (:samples @app-state)))
-                  (swap! app-state user-sample :w))}
+      {:onClick (fn [] (swap! app-state ten-new-random-samples))}
+      "x 10"]
+     nil)
+   (if (not-reached-sample-limit (:samples @app-state))
+     [:button
+      {:onClick (fn [] (swap! app-state user-sample :w))}
       ":w"]
      nil)
-   (if (more-samples-available (:samples @app-state))
+   (if (not-reached-sample-limit (:samples @app-state))
      [:button
-      {:onClick (fn []
-                  (js/console.log (str "New :w sample - samples " (:samples @app-state)))
-                  (swap! app-state user-sample :l))}
+      {:onClick (fn [] (swap! app-state user-sample :l))}
       ":l"]
      nil)
    (if (last (:samples @app-state))
@@ -163,6 +176,11 @@
                   (js/console.log (str "Remove 1 sample " (:samples @app-state)))
                   (swap! app-state one-less-sample))}
       "Remove a sample"]
+     nil)
+   (if (>= (count (:samples @app-state)) 10)
+     [:button
+      {:onClick (fn [] (swap! app-state ten-less-samples))}
+      "x 10"]
      nil)
    (if (last (:samples @app-state))
      [:button
