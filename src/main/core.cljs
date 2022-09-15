@@ -35,8 +35,8 @@
                      d/standardize))
          (g/titles prior-title
                    "% of world that is water"
-                   (str "Pr(" last-water "," last-land "|p)")))
-        eq1 (str "Pr(" new-water "," new-land "|p)")
+                   (str "Pr(" last-water "," last-land " ⎹ p)")))
+        eq1 (str "Pr(" new-water "," new-land " ⎹ p)")
         new-sample-graph
         (g/probability-dis
          (g/data grid-p
@@ -45,7 +45,7 @@
                    "% of world that is water"
                    eq1))
 
-        eq2 (str "Pr(" water "," land "|p)")
+        eq2 (str "Pr(" water "," land " ⎹ p)")
         rlikelihood-graph-one-perm
         (g/probability-dis
          (g/data grid-p
@@ -59,7 +59,7 @@
          (g/data
           grid-p
           (d/r-likelihood-from-samples grid-p samples))
-         (g/titles (str "Probability of Any (" water "," land ") Sequence")
+         (g/titles (str "Probability of Any (" water "," land ") Sequence Pr(W,L ⎹ p)")
                    "% of world that is water"
                    eq2))
         pos-graph
@@ -68,9 +68,9 @@
                  (->
                   (d/r-likelihood-from-samples grid-p samples)
                   d/standardize))
-         (g/titles  "Posterior Probability (standardized)"
+         (g/titles  "Posterior Pr(p ⎹ W,L)"
                     "% of world that is water"
-                    "Pr(p|W,L)"))]
+                    "Pr(p ⎹ W,L)"))]
     {:vconcat
      (if (last samples)
        [{:hconcat [n-graph prior-before-this-sample-graph new-sample-graph]}
@@ -185,8 +185,9 @@
        
        
        [:div
+
         [:p (str "Samples:  " (:samples @app-state))]
-        [:p "W = " water "  L = " land]
+        [:p "W = " water " ;  L = " land]
         [:p
          "Probability of this (W,L) sequence of samples = "
          [:> mj/MathComponent {:tex "p^{W}(1-p)^L" :display false}]
@@ -205,11 +206,22 @@
          "Probability of any of " (d/n-of-permutations water n) " (W,L) sequence(s) = "
          [:> mj/MathComponent {:tex "Pr(W,L|p)=\\frac{(W+L)!}{W!L!}p^{W}(1-p)^L" :display false}]
          " = "
-         [:> mj/MathComponent {:tex (str "\\frac{(" water "+" land ")!}{" water "!" land "!} " "p^{" water "}(1-p)^{" land "}") :display false}]
+         [:> mj/MathComponent {:tex (str "\\frac{(" water "+" land ")!}{" water "!" land "!} "
+                                         "p^{" water "}(1-p)^{" land "}") :display false}]
          " = "
          (d/n-of-permutations water n)
          " "
          [:> mj/MathComponent {:tex (str "p^{" water "}(1-p)^{" land "}") :display false}]]
+        [:p
+         "Posterior = "
+         [:> mj/MathComponent {:tex "Pr(p \\mid W, L)= 
+                                     \\frac{\\text { Probability of the data } \\times 
+                                     \\text { Prior }}{\\text { Average probability of the data}} = " :display false}]
+
+         [:> mj/MathComponent {:tex "\\frac{Pr(W, L \\mid p) Pr(p)}{Pr(W, L)}" :display false}]
+         " where "
+         [:> mj/MathComponent {:tex "\\text { Average probability of the data} = Pr(W, L) = \\int _0 ^1 {Pr(W, L \\mid p) Pr(p)}dp" :display false}]]
+
 
         [oz/vega-lite (graph-posterior-dis (:samples @app-state))]]]))
 
