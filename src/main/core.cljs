@@ -193,17 +193,18 @@
 
 
 (defn collapsible [{:keys [comp heading]}]
-  (r/with-let [showing (r/atom true)]
-    [:div
+  (r/with-let [showing (r/atom false)]
+    [:div.collapsible-div
      (when comp
-       [:div.demo-example.clearfix
-        [:a.demo-example-hide {:on-click (fn [e]
-                                           (.preventDefault e)
-                                           (swap! showing not)
-                                           nil)}
+       [:div.demo-example.clearfix {:on-click (fn [e]
+                                                (.preventDefault e)
+                                                (swap! showing not)
+                                                nil)}
+        [:a.collapsible-hide
          (if @showing "hide" "show")]
         (when heading
-          [:h3.demo-heading heading])
+          [:h3.demo-heading (str heading " ") 
+           [:span.collapsible-hide-left (if @showing "hide" "show")]])
         (when @showing comp)])]))
 
 (defn page []
