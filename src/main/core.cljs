@@ -200,12 +200,12 @@
                                                 (.preventDefault e)
                                                 (swap! showing not)
                                                 nil)}
-        [:a.collapsible-hide
-         (if @showing "hide" "show")]
+        [:a.collapsible-hide (if @showing "hide" "show")]
         (when heading
-          [:h3.demo-heading (str heading " ") 
-           [:span.collapsible-hide-left (if @showing "hide" "show")]])
-        (when @showing comp)])]))
+          [:h3.demo-heading (str heading " ")
+           [:span.collapsible-hide-left (if @showing "hide" "show")]])]
+       )
+     (when (and comp @showing) comp)]))
 
 (defn page []
     (let [[n land water] (d/count-land-or-water (:samples @app-state))
