@@ -1,13 +1,13 @@
 (ns core
   (:require [reagent.dom :as rdom]
-            [bayes-update]))
+            [sampling-from-posterior]))
 
 (defn ^:dev/after-load start []
   (js/console.log "start")
-  (rdom/render [bayes-update/page]
+  (rdom/render [sampling-from-posterior/page]
                (. js/document (getElementById "app"))))
 
-(defn ^:export init []
+(defn ^:export init [ & args]
   (js/console.log "init")
   (start))
 
