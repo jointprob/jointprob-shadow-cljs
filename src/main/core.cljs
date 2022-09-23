@@ -154,49 +154,42 @@
                            (let [new-value (js/parseInt (.. e -target -value))]
                              (swap! app-state assoc-in [:speed] new-value)))}]
      (str (.toFixed (/ 1000 (:speed @app-state)) 2) " samples/second")
-     (if (not-reached-sample-limit (:samples @app-state))
+     (when (not-reached-sample-limit (:samples @app-state))
        [:> sur/Popup {:content tool-tip
                       :trigger (r/as-element
                                 [:> sur/Button
                                  {:onClick (fn [] (swap! app-state new-random-sample))}
-                                 "Random sample"])}]
-       nil)
-     (if (not-reached-sample-within-10-of-limit (:samples @app-state))
+                                 "Random sample"])}])
+     (when (not-reached-sample-within-10-of-limit (:samples @app-state))
        [:> sur/Popup {:content tool-tip
                       :trigger (r/as-element
                                 [:> sur/Button
                                  {:onClick (fn [] (swap! app-state ten-new-random-samples))}
-                                 "x 10"])}]
-       nil)
-     (if (not-reached-sample-limit (:samples @app-state))
+                                 "x 10"])}])
+     (when (not-reached-sample-limit (:samples @app-state))
        [:> sur/Button
         {:onClick (fn [] (swap! app-state user-sample :w))}
-        ":w"]
-       nil)
-     (if (not-reached-sample-limit (:samples @app-state))
+        ":w"])
+     (when (not-reached-sample-limit (:samples @app-state))
        [:> sur/Button
         {:onClick (fn [] (swap! app-state user-sample :l))}
-        ":l"]
-       nil)
-     (if (last (:samples @app-state))
+        ":l"])
+     (when (last (:samples @app-state))
        [:> sur/Button
         {:onClick (fn []
                     (js/console.log (str "Remove 1 sample " (:samples @app-state)))
                     (swap! app-state one-less-sample))}
-        "Remove a sample"]
-       nil)
-     (if (>= (count (:samples @app-state)) 10)
+        "Remove a sample"])
+     (when (>= (count (:samples @app-state)) 10)
        [:> sur/Button
         {:onClick (fn [] (swap! app-state ten-less-samples))}
-        "x 10"]
-       nil)
-     (if (last (:samples @app-state))
+        "x 10"])
+     (when (last (:samples @app-state))
        [:> sur/Button
         {:onClick (fn []
                     (js/console.log (str "Clear samples " (:samples @app-state)))
                     (swap! app-state assoc-in [:samples] []))}
-        "Clear samples"]
-       nil)]))
+        "Clear samples"])]))
 
 
 (defn collapsible [{:keys [comp heading]}]
