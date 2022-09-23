@@ -131,70 +131,72 @@
 (defn buttons []
   (let [tool-tip "Randomly generated samples are :w with a probability of 0.6."]
     [:div#buttons
-     [:> sur/Popup {:content tool-tip
-                    :trigger (r/as-element
-                              (if (:play-timeout-ID @app-state)
-                                [:> sur/Button
-                                 {:onClick (fn []
-                                             (js/console.log "Pause pressed")
-                                             (pause))}
-                                 [:> sur/Icon {:name "pause"}]]
-                                [:> sur/Button
-                                 {:onClick (fn []
-                                             (js/console.log "Play pressed")
-                                             (if (not-reached-sample-limit (:samples @app-state))
-                                               nil
-                                               (swap! app-state assoc-in [:samples] []))
-                                             (play))}
-                                 [:> sur/Icon {:name "play"}]]))}]
-     "Speed : "
-     [:input {:type "range" :value (:speed @app-state) :min 125 :max 2000 :step 125
-              :tooltip (str " - new sample every " (/ (:speed @app-state) 1000) " seconds")
-              :on-change (fn [e]
-                           (let [new-value (js/parseInt (.. e -target -value))]
-                             (swap! app-state assoc-in [:speed] new-value)))}]
-     (str (.toFixed (/ 1000 (:speed @app-state)) 2) " samples/second")
-     (when (not-reached-sample-limit (:samples @app-state))
-       [:> sur/Popup {:content tool-tip
-                      :trigger (r/as-element
-                                [:> sur/Button
-                                 {:onClick (fn [] (swap! app-state new-random-sample))}
-                                 "Random sample"])}])
-     (when (not-reached-sample-within-10-of-limit (:samples @app-state))
-       [:> sur/Popup {:content tool-tip
-                      :trigger (r/as-element
-                                [:> sur/Button
-                                 {:onClick (fn [] (swap! app-state ten-new-random-samples))}
-                                 "x 10"])}])
-     (when (not-reached-sample-limit (:samples @app-state))
-       [:> sur/Button
-        {:onClick (fn [] (swap! app-state user-sample :w))}
-        ":w"])
-     (when (not-reached-sample-limit (:samples @app-state))
-       [:> sur/Button
-        {:onClick (fn [] (swap! app-state user-sample :l))}
-        ":l"])
-     (when (last (:samples @app-state))
-       [:> sur/Button
-        {:onClick (fn []
-                    (js/console.log (str "Remove 1 sample " (:samples @app-state)))
-                    (swap! app-state one-less-sample))}
-        "Remove a sample"])
-     (when (>= (count (:samples @app-state)) 10)
-       [:> sur/Button
-        {:onClick (fn [] (swap! app-state ten-less-samples))}
-        "x 10"])
-     (when (last (:samples @app-state))
-       [:> sur/Button
-        {:onClick (fn []
-                    (js/console.log (str "Clear samples " (:samples @app-state)))
-                    (swap! app-state assoc-in [:samples] []))}
-        "Clear samples"])]))
+     [:> sur/Container 
+      [:> sur/Popup {:content tool-tip
+                     :trigger (r/as-element
+                               (if (:play-timeout-ID @app-state)
+                                 [:> sur/Button
+                                  {:onClick (fn []
+                                              (js/console.log "Pause pressed")
+                                              (pause))}
+                                  [:> sur/Icon {:name "pause"}]]
+                                 [:> sur/Button
+                                  {:onClick (fn []
+                                              (js/console.log "Play pressed")
+                                              (if (not-reached-sample-limit (:samples @app-state))
+                                                nil
+                                                (swap! app-state assoc-in [:samples] []))
+                                              (play))}
+                                  [:> sur/Icon {:name "play"}]]))}]
+      "Speed : "
+      [:input {:type "range" :value (:speed @app-state) :min 125 :max 2000 :step 125
+               :tooltip (str " - new sample every " (/ (:speed @app-state) 1000) " seconds")
+               :on-change (fn [e]
+                            (let [new-value (js/parseInt (.. e -target -value))]
+                              (swap! app-state assoc-in [:speed] new-value)))}]
+      (str (.toFixed (/ 1000 (:speed @app-state)) 2) " samples/second")
+      (when (not-reached-sample-limit (:samples @app-state))
+        [:> sur/Popup {:content tool-tip
+                       :trigger (r/as-element
+                                 [:> sur/Button
+                                  {:onClick (fn [] (swap! app-state new-random-sample))}
+                                  "Random sample"])}])
+      (when (not-reached-sample-within-10-of-limit (:samples @app-state))
+        [:> sur/Popup {:content tool-tip
+                       :trigger (r/as-element
+                                 [:> sur/Button
+                                  {:onClick (fn [] (swap! app-state ten-new-random-samples))}
+                                  "x 10"])}])
+      (when (not-reached-sample-limit (:samples @app-state))
+        [:> sur/Button
+         {:onClick (fn [] (swap! app-state user-sample :w))}
+         ":w"])
+      (when (not-reached-sample-limit (:samples @app-state))
+        [:> sur/Button
+         {:onClick (fn [] (swap! app-state user-sample :l))}
+         ":l"])]
+     [:> sur/Container 
+      (when (last (:samples @app-state))
+        [:> sur/Button
+         {:onClick (fn []
+                     (js/console.log (str "Remove 1 sample " (:samples @app-state)))
+                     (swap! app-state one-less-sample))}
+         "Remove a sample"])
+      (when (>= (count (:samples @app-state)) 10)
+        [:> sur/Button
+         {:onClick (fn [] (swap! app-state ten-less-samples))}
+         "x 10"])
+      (when (last (:samples @app-state))
+        [:> sur/Button
+         {:onClick (fn []
+                     (js/console.log (str "Clear samples " (:samples @app-state)))
+                     (swap! app-state assoc-in [:samples] []))}
+         "Clear samples"])]]))
 
 
 (defn collapsible [{:keys [comp heading]}]
   (r/with-let [showing (r/atom false)]
-    [:> sur/Accordion {:defaultActiveIndex 0 :fluid true}
+    [:> sur/Accordion {:fluid true}
      (when heading
        [:> sur/Accordion.Title {:index 1
                                 :active @showing
