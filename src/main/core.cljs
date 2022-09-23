@@ -4,7 +4,8 @@
             [oz.core :as oz]
             [graphs :as g]
             [dbinomial :as d]
-            [mathjax-react :as mj]))
+            [mathjax-react :as mj]
+            [semantic-ui-react :as sur]))
 
 (defonce app-state (r/atom {:prior "Uniform"
                             :samples []
@@ -194,18 +195,18 @@
 
 (defn collapsible [{:keys [comp heading]}]
   (r/with-let [showing (r/atom false)]
-    [:div.collapsible-div
+    [:> sur/Accordion {:defaultActiveIndex 0 :fluid true}
+     (when heading
+       [:> sur/Accordion.Title {:index 1
+                                :active @showing
+                                :on-click (fn [e]
+                                            (.preventDefault e)
+                                            (swap! showing not)
+                                            nil)} 
+        [:> sur/Icon {:name "dropdown"}] heading])
      (when comp
-       [:div.demo-example.clearfix {:on-click (fn [e]
-                                                (.preventDefault e)
-                                                (swap! showing not)
-                                                nil)}
-        [:a.collapsible-hide (if @showing "hide" "show")]
-        (when heading
-          [:h3.demo-heading (str heading " ")
-           [:span.collapsible-hide-left (if @showing "hide" "show")]])]
-       )
-     (when (and comp @showing) comp)]))
+       [:> sur/Accordion.Content {:active @showing}
+        comp])]))
 
 (defn page []
     (let [[n land water] (d/count-land-or-water (:samples @app-state))
