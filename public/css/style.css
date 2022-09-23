@@ -1,22 +1,4 @@
 button {font-size: 1.2em;
-margin: 0.2em;}
+margin: 0.4em;}
 
-
-.collapsible-hide {
-    margin-top: 3px;
-    float: right;
-    color: #bbb;
-    font-size: 12px;
-}
-
-.collapsible-div {
-    cursor: pointer;
-}
-
-.collapsible-hide-left {
-    margin-top: 3px;
-    color: #bbb;
-    font-size: 12px;
-    font-weight: normal;
-}
 
