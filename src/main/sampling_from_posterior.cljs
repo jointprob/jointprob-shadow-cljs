@@ -23,7 +23,7 @@
         (g/probability-dis
          (g/data grid-p
                  (->>
-                  (d/r-likelihood-from-samples grid-p samples)
+                  (d/r-likelihood-from-samples samples)
                   d/standardize))
          (g/titles  "Posterior Pr(p ⎹ W,L)"
                     "% of world that is water"
@@ -108,7 +108,6 @@
 
 
 (defn page []
-  (let [grid-p (map #(/ % 200) (range 0 201))
-        samples (repeatedly 100 #(if (>= 0.6 (rand)) :w :l))]
+  (let [samples (repeatedly 100 #(if (>= 0.6 (rand)) :w :l))]
     [:> sur/Container
-     [oz/vega-lite (graph-posterior-dis grid-p samples)]]))
+     [oz/vega-lite (graph-posterior-dis d/grid-p samples)]]))

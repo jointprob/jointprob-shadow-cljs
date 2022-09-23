@@ -23,22 +23,26 @@
      (exp prob x)
      (exp (- 1 prob) (- n x))))
 
-(defn relative-likelihood [x n coll-p]
-  "Calculate the relative likelihood for a collection of p."
-  (map #(dbinom x n %) coll-p))
+(def grid-p
+  "The grid for grid approximation"
+  (map #(/ % 200) (range 0 201)))
 
-(defn bayesian-binary-update [found prior coll-p]
-  (let [update-if-found coll-p    ; range from 0 to 1 inclusive with size elements
-        update-if-not-found (map #(- 1 %) coll-p)]
+(defn relative-likelihood [x n]
+  "Calculate the relative likelihood for a collection of p."
+  (map #(dbinom x n %) grid-p))
+
+(defn bayesian-binary-update [found prior]
+  (let [update-if-found grid-p    ; range from 0 to 1 inclusive with size elements
+        update-if-not-found (map #(- 1 %) grid-p)]
     (map * prior (if found update-if-found update-if-not-found))))
 
-(defn relative-likelihood-for-this-sequence [x n coll-p]
-  (let [uniform-prior (repeat (count coll-p) 1)
+(defn relative-likelihood-for-this-sequence [x n]
+  (let [uniform-prior (repeat (count grid-p) 1)
         times-found x
         times-not-found (- n x)]
     (-> ; repeatedly update depending on times-found and times-not-found :
-     (reduce (fn [last-step _] (bayesian-binary-update true last-step coll-p)) uniform-prior (repeat times-found 1))
-     (#(reduce (fn [last-step _] (bayesian-binary-update false last-step coll-p)) % (repeat times-not-found 1))))))
+     (reduce (fn [last-step _] (bayesian-binary-update true last-step)) uniform-prior (repeat times-found 1))
+     (#(reduce (fn [last-step _] (bayesian-binary-update false last-step)) % (repeat times-not-found 1))))))
 
 (defn standardize
   "make average of values in coll r = 1"
@@ -52,10 +56,10 @@
         water (count (filter (partial = :w) samples))]
     [n land water]))
 
-(defn r-likelihood-from-samples [coll-p samples]
+(defn r-likelihood-from-samples [samples]
   (let [[n _ water] (count-land-or-water samples)]
-    (relative-likelihood water n coll-p)))
+    (relative-likelihood water n)))
 
-(defn r-likelihood-from-samples-for-this-sequence [coll-p samples]
+(defn r-likelihood-from-samples-for-this-sequence [samples]
   (let [[n _ water] (count-land-or-water samples)]
-    (relative-likelihood-for-this-sequence water n coll-p)))
+    (relative-likelihood-for-this-sequence water n)))

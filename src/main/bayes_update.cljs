@@ -13,12 +13,10 @@
                             :speed 1000}))
 
 
-(def grid-p (map #(/ % 200) (range 0 201)))
-
 (def priors {"Uniform" (repeat 201 1)
-             "Step up" (map #(if (<= % 0.5) 0 2) grid-p)
-             "Step down" (map #(if (<= % 0.5) 2 0) grid-p)
-             "Ramp up and down" (-> (map #(if (<= % 0.5) (d/exp 1.08 (* 200 %)) (d/exp 1.08 (* 200 (- 1 %)))) grid-p)
+             "Step up" (map #(if (<= % 0.5) 0 2) d/grid-p)
+             "Step down" (map #(if (<= % 0.5) 2 0) d/grid-p)
+             "Ramp up and down" (-> (map #(if (<= % 0.5) (d/exp 1.08 (* 200 %)) (d/exp 1.08 (* 200 (- 1 %)))) d/grid-p)
                                     (d/standardize))})
 
 (defn graph-posterior-dis [samples]
@@ -37,8 +35,8 @@
          (g/percentage-axis :y))
         prior-before-this-sample-graph
         (g/probability-dis
-         (g/data grid-p
-                 (->> (d/r-likelihood-from-samples  grid-p (butlast samples))
+         (g/data d/grid-p
+                 (->> (d/r-likelihood-from-samples  (butlast samples))
                       (map * (get priors (:prior @app-state)))
                       d/standardize))
          (g/titles prior-title
@@ -47,8 +45,8 @@
         eq1 (str "Pr(" new-water "," new-land " ⎹ p)")
         new-sample-graph
         (g/probability-dis
-         (g/data grid-p
-                 (d/r-likelihood-from-samples grid-p (list (last samples))))
+         (g/data d/grid-p
+                 (d/r-likelihood-from-samples (list (last samples))))
          (g/titles (str "Probability of new sample \"" (last samples) "\" " eq1)
                    "% of world that is water"
                    eq1))
@@ -56,8 +54,8 @@
         eq2 (str "Pr(" water "," land " ⎹ p)")
         rlikelihood-graph-one-perm
         (g/probability-dis
-         (g/data grid-p
-                 (d/r-likelihood-from-samples-for-this-sequence grid-p samples))
+         (g/data d/grid-p
+                 (d/r-likelihood-from-samples-for-this-sequence samples))
          (g/titles (str  "Probability of This (" water "," land ") Sequence")
                    "% of world that is water"
                    eq2)
@@ -65,16 +63,16 @@
         rlikelihood-graph-all-perms
         (g/probability-dis
          (g/data
-          grid-p
-          (d/r-likelihood-from-samples grid-p samples))
+          d/grid-p
+          (d/r-likelihood-from-samples samples))
          (g/titles (str "Probability of Any (" water "," land ") Sequence Pr(W,L ⎹ p)")
                    "% of world that is water"
                    eq2))
         pos-graph
         (g/probability-dis
-         (g/data grid-p
+         (g/data d/grid-p
                  (->>
-                  (d/r-likelihood-from-samples grid-p samples)
+                  (d/r-likelihood-from-samples samples)
                   (map * (get priors (:prior @app-state)))
                   d/standardize))
          (g/titles  "Posterior Pr(p ⎹ W,L)"
@@ -226,14 +224,17 @@
                    [:div
 
                     [:label "Prior before any data "]
-                    (into (vector) (concat [:select.form-control {:field :list
-                                                                  :value (:prior @app-state)
-                                                                  :id :many.options
-                                                                  :on-change #(swap! app-state assoc-in [:prior] (.. % -target -value))}]
-                                           (map #(vector :option {:key (first %)} (first %)) priors)))
+                    (into (vector) 
+                          (concat [:select.form-control {:field :list
+                                                         :value (:prior @app-state)
+                                                         :id :many.options
+                                                         :on-change #(swap! app-state assoc-in 
+                                                                            [:prior] 
+                                                                            (.. % -target -value))}]
+                                  (map #(vector :option {:key (first %)} (first %)) priors)))
                     [:div
                      [oz/vega-lite (g/probability-dis
-                                    (g/data grid-p
+                                    (g/data d/grid-p
                                             (get priors (:prior @app-state)))
                                     (g/titles "Prior before any data"
                                               "% of world that is water"
