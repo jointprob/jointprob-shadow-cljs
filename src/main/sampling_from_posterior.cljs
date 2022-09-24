@@ -66,7 +66,7 @@
                                              (play))}
                                  [:> sur/Icon {:name "play"}]]))}]
      "Speed : "
-     [:input {:type "range" :value (:speed @app-state) :min 20 :max 100 :step 10
+     [:input {:type "range" :value (:speed @app-state) :min 5 :max 50 :step 5
               :on-change (fn [e]
                            (let [new-value (js/parseFloat (.. e -target -value))]
                              (swap! app-state assoc-in [:speed] new-value)))}]
