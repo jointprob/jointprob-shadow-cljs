@@ -3,7 +3,8 @@
             [oz.core :as oz]
             [graphs :as g]
             [dbinomial :as d]
-            [semantic-ui-react :as sur]))
+            [semantic-ui-react :as sur]
+            [react-custom :as rc]))
 
 
 (defonce app-state (r/atom {:pos-dis-samples []
@@ -81,4 +82,6 @@
     [:> sur/Container
      [oz/vega-lite (graph-posterior-dis samples)]
      [buttons samples]
-     [:div (str (:pos-dis-samples @app-state))]]))
+     [rc/collapsible
+      "Samples"
+      [:div (str (:pos-dis-samples @app-state))]]]))

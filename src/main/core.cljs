@@ -25,7 +25,6 @@
                                     nil)} 
        "Sampling from Posterior"]]
      [:> sur/Container {:style {:marginTop "7em"}}
-      [:div]
       (case @showing-page
         1 [bayes-update/page]
         2 [sampling-from-posterior/page])]]))

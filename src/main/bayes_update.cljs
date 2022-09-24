@@ -1,10 +1,11 @@
 (ns bayes-update
-  (:require [reagent.core :as r]
-            [oz.core :as oz]
+  (:require [dbinomial :as d]
             [graphs :as g]
-            [dbinomial :as d]
             [mathjax-react :as mj]
-            [semantic-ui-react :as sur]))
+            [oz.core :as oz]
+            [reagent.core :as r]
+            [semantic-ui-react :as sur]
+            [react-custom :as rc]))
 
 
 (defonce app-state (r/atom {:prior "Uniform"
@@ -189,21 +190,6 @@
          "Clear samples"])]]))
 
 
-(defn collapsible [{:keys [comp heading]}]
-  (r/with-let [showing (r/atom false)]
-    [:> sur/Accordion {:fluid true}
-     (when heading
-       [:> sur/Accordion.Title {:index 1
-                                :active @showing
-                                :on-click (fn [e]
-                                            (.preventDefault e)
-                                            (swap! showing not)
-                                            nil)}
-        [:> sur/Icon {:name "dropdown"}] heading])
-     (when comp
-       [:> sur/Accordion.Content {:active @showing}
-        comp])]))
-
 (defn page []
   (let [[n land water] (d/count-land-or-water (:samples @app-state))
         permutations (str "Number of possible sequences of "
@@ -216,30 +202,29 @@
                           (if (= land 1) "" "s")
                           " = ")]
     [:> sur/Container
-     [collapsible {:heading "Prior"
-                   :comp
-                   [:div
+     [rc/collapsible
+      "Prior"
+      [:div
 
-                    [:label "Prior before any data "]
-                    (into (vector) 
-                          (concat [:select.form-control {:field :list
-                                                         :value (:prior @app-state)
-                                                         :id :many.options
-                                                         :on-change #(swap! app-state assoc-in 
-                                                                            [:prior] 
-                                                                            (.. % -target -value))}]
-                                  (map #(vector :option {:key (first %)} (first %)) priors)))
-                    [:div
-                     [oz/vega-lite (g/probability-dis
-                                    (g/data d/grid-p
-                                            (get priors (:prior @app-state)))
-                                    (g/titles "Prior before any data"
-                                              "% of world that is water"
-                                              "Pr(p)"))]]]}]
+       [:label "Prior before any data "]
+       (into (vector)
+             (concat [:select.form-control {:field :list
+                                            :value (:prior @app-state)
+                                            :id :many.options
+                                            :on-change #(swap! app-state assoc-in
+                                                               [:prior]
+                                                               (.. % -target -value))}]
+                     (map #(vector :option {:key (first %)} (first %)) priors)))
+       [:div
+        [oz/vega-lite (g/probability-dis
+                       (g/data d/grid-p
+                               (get priors (:prior @app-state)))
+                       (g/titles "Prior before any data"
+                                 "% of world that is water"
+                                 "Pr(p)"))]]]]
      [buttons]
-     [collapsible
-      {:heading "Formulae"
-       :comp
+     [rc/collapsible
+       "Formulae"
        [:div
         [:p (str "Samples:  " (:samples @app-state))]
         [:p "W = " water " ;  L = " land]
@@ -275,5 +260,5 @@
 
          [:> mj/MathComponent {:tex "\\frac{Pr(W, L \\mid p) Pr(p)}{Pr(W, L)}" :display false}]
          " where "
-         [:> mj/MathComponent {:tex "\\text { Average probability of the data} = Pr(W, L) = \\int _0 ^1 {Pr(W, L \\mid p) Pr(p)}dp" :display false}]]]}]
+         [:> mj/MathComponent {:tex "\\text { Average probability of the data} = Pr(W, L) = \\int _0 ^1 {Pr(W, L \\mid p) Pr(p)}dp" :display false}]]]]
      [oz/vega-lite (graph-posterior-dis (:samples @app-state))]]))
