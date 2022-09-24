@@ -35,10 +35,9 @@
          (g/percentage-axis :y))
         prior-before-this-sample-graph
         (g/probability-dis
-         (g/data d/grid-p
-                 (->> (d/r-likelihood-from-samples  (butlast samples))
-                      (map * (get priors (:prior @app-state)))
-                      d/standardize))
+         (g/data d/grid-p (d/posterior-distribution
+                           (butlast samples)
+                           (get priors (:prior @app-state))))
          (g/titles prior-title
                    "% of world that is water"
                    (str "Pr(" last-water "," last-land " ⎹ p)")))
@@ -46,7 +45,7 @@
         new-sample-graph
         (g/probability-dis
          (g/data d/grid-p
-                 (d/r-likelihood-from-samples (list (last samples))))
+                 (d/relative-likelihood-from-samples (list (last samples))))
          (g/titles (str "Probability of new sample \"" (last samples) "\" " eq1)
                    "% of world that is water"
                    eq1))
@@ -64,17 +63,15 @@
         (g/probability-dis
          (g/data
           d/grid-p
-          (d/r-likelihood-from-samples samples))
+          (d/relative-likelihood-from-samples samples))
          (g/titles (str "Probability of Any (" water "," land ") Sequence Pr(W,L ⎹ p)")
                    "% of world that is water"
                    eq2))
         pos-graph
         (g/probability-dis
-         (g/data d/grid-p
-                 (->>
-                  (d/r-likelihood-from-samples samples)
-                  (map * (get priors (:prior @app-state)))
-                  d/standardize))
+         (g/data d/grid-p (d/posterior-distribution
+                           samples
+                           (get priors (:prior @app-state))))
          (g/titles  "Posterior Pr(p ⎹ W,L)"
                     "% of world that is water"
                     "Pr(p ⎹ W,L)"))]

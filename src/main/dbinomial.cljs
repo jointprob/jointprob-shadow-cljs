@@ -27,9 +27,14 @@
   "The grid for grid approximation"
   (map #(/ % 200) (range 0 201)))
 
-(defn relative-likelihood [x n]
+(defn relative-likelihood 
   "Calculate the relative likelihood for a collection of p."
+  [x n]
   (map #(dbinom x n %) grid-p))
+
+(def relative-likelihood-memo
+  (memoize relative-likelihood))
+
 
 (defn bayesian-binary-update [found prior]
   (let [update-if-found grid-p    ; range from 0 to 1 inclusive with size elements
@@ -56,10 +61,41 @@
         water (count (filter (partial = :w) samples))]
     [n land water]))
 
-(defn r-likelihood-from-samples [samples]
+(defn relative-likelihood-from-samples [samples]
   (let [[n _ water] (count-land-or-water samples)]
     (relative-likelihood water n)))
+
+(defn posterior-distribution
+  "If no prior given assume uniform prior."
+  ([samples]
+  (->>
+   (relative-likelihood-from-samples samples)
+   standardize))
+  ([samples prior]
+   (->>
+    (relative-likelihood-from-samples samples)
+    (map * prior)
+    standardize)))
+
+
 
 (defn r-likelihood-from-samples-for-this-sequence [samples]
   (let [[n _ water] (count-land-or-water samples)]
     (relative-likelihood-for-this-sequence water n)))
+
+(defn sample-posterior 
+  "Calculate posterior from :w or :l samples and then 
+   take a random sample from posterior distribution"
+  [samples]
+  (let [[n _ water] (count-land-or-water samples)
+        relative-likelihood-dis (relative-likelihood-from-samples samples)
+        relative-likelihood-max (apply max relative-likelihood-dis)
+        ]
+    (first (filter (complement nil?)
+                   (repeatedly
+                    #(let [p (rand)
+                           relative-likelihood-of-p (dbinom water n p)
+                           accept-or-reject (rand relative-likelihood-max)]
+                       (if (< accept-or-reject relative-likelihood-of-p)
+                         p
+                         nil)))))))
