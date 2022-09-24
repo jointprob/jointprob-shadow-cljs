@@ -10,7 +10,7 @@
 
 (defonce app-state (r/atom {:pos-dis-samples []
                             :play-timeout-ID nil
-                            :speed 1.0}))
+                            :speed 50.0}))
 
 
 
@@ -66,7 +66,7 @@
                                              (play))}
                                  [:> sur/Icon {:name "play"}]]))}]
      "Speed : "
-     [:input {:type "range" :value (:speed @app-state) :min 0.5 :max 10 :step 0.5
+     [:input {:type "range" :value (:speed @app-state) :min 20 :max 100 :step 10
               :on-change (fn [e]
                            (let [new-value (js/parseFloat (.. e -target -value))]
                              (swap! app-state assoc-in [:speed] new-value)))}]
@@ -83,4 +83,18 @@
    [buttons samples]
    [rc/collapsible
     "Samples"
-    [:div (str (:pos-dis-samples @app-state))]]])
+    [:div (str (:pos-dis-samples @app-state))]]
+   [oz/vega-lite 
+    {:hconcat
+     [(g/point-chart
+      (g/data (range 0 1e4) (:pos-dis-samples @app-state))
+      (g/titles  "Random Samples from Posterior"
+                 "sample number"
+                 "% of world that is water"))
+     (g/area-chart
+      (g/data (:pos-dis-samples @app-state))
+      (g/density-transform 0.01 [0 1])
+      (g/titles  "Density of Samples from Posterior"
+                 "% of world that is water"
+                 "Density"))]
+     }]])
