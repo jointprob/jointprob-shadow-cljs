@@ -31,7 +31,7 @@
                     "Pr(p ⎹ W,L)"))]
     {:hconcat [n-graph pos-graph]}))
 
-(def max-samples 1e4)
+(def max-samples 2e3)
 
 (defn not-reached-sample-limit [samples]
   (< (count samples) max-samples))
