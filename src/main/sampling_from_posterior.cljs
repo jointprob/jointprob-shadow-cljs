@@ -6,6 +6,7 @@
             [semantic-ui-react :as sur]
             [react-custom :as rc]))
 
+(defonce samples (repeatedly 100 #(if (>= 0.6 (rand)) :w :l)))
 
 (defonce app-state (r/atom {:pos-dis-samples []
                             :play-timeout-ID nil
@@ -13,7 +14,7 @@
 
 
 
-(defn graph-posterior-dis [samples]
+(defn graph-posterior-dis []
   (let [[n land water] (d/count-land-or-water samples)
         n-graph
         (g/bar-chart
@@ -38,7 +39,7 @@
 (defn new-random-sample [state samples]
   (update-in state [:pos-dis-samples] conj (d/sample-posterior samples)))
 
-(defn play [samples]
+(defn play []
   (swap! app-state new-random-sample samples)
   (swap! app-state assoc-in [:play-timeout-ID]
          (if (not-reached-sample-limit (:pos-dis-samples @app-state))
@@ -49,7 +50,7 @@
   (js/clearTimeout (:play-timeout-ID @app-state))
   (swap! app-state assoc-in [:play-timeout-ID] nil))
 
-(defn buttons [samples]
+(defn buttons []
   (let [tool-tip "Sampling from under the curve of probability density function."]
     [:div#buttons
      [:> sur/Popup {:content tool-tip
@@ -62,7 +63,7 @@
                                  {:onClick (fn []
                                              (when (not (not-reached-sample-limit (:pos-dis-samples @app-state)))
                                                (swap! app-state assoc-in [:pos-dis-samples] []))
-                                             (play samples))}
+                                             (play))}
                                  [:> sur/Icon {:name "play"}]]))}]
      "Speed : "
      [:input {:type "range" :value (:speed @app-state) :min 0.5 :max 10 :step 0.5
@@ -77,10 +78,9 @@
         "Clear samples"])]))
 
 (defn page []
-  (let [samples (repeatedly 100 #(if (>= 0.6 (rand)) :w :l))]
-    [:> sur/Container
-     [oz/vega-lite (graph-posterior-dis samples)]
-     [buttons samples]
-     [rc/collapsible
-      "Samples"
-      [:div (str (:pos-dis-samples @app-state))]]]))
+  [:> sur/Container
+   [oz/vega-lite (graph-posterior-dis)]
+   [buttons samples]
+   [rc/collapsible
+    "Samples"
+    [:div (str (:pos-dis-samples @app-state))]]])
