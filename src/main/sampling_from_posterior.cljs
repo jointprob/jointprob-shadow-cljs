@@ -9,7 +9,7 @@
 
 (defonce app-state (r/atom {:pos-dis-samples []
                             :play-timeout-ID nil
-                            :speed 1000}))
+                            :speed 1.0}))
 
 
 
@@ -42,7 +42,7 @@
   (swap! app-state new-random-sample samples)
   (swap! app-state assoc-in [:play-timeout-ID]
          (if (not-reached-sample-limit (:pos-dis-samples @app-state))
-           (js/setTimeout play (:speed @app-state))
+           (js/setTimeout play (js/Math.floor (/ 1000 (:speed @app-state))))
            nil)))
 
 (defn pause []
@@ -65,12 +65,11 @@
                                              (play samples))}
                                  [:> sur/Icon {:name "play"}]]))}]
      "Speed : "
-     [:input {:type "range" :value (:speed @app-state) :min 125 :max 2000 :step 125
-              :tooltip (str " - new sample every " (/ (:speed @app-state) 1000) " seconds")
+     [:input {:type "range" :value (:speed @app-state) :min 0.5 :max 10 :step 0.5
               :on-change (fn [e]
-                           (let [new-value (js/parseInt (.. e -target -value))]
+                           (let [new-value (js/parseFloat (.. e -target -value))]
                              (swap! app-state assoc-in [:speed] new-value)))}]
-     (str (.toFixed (/ 1000 (:speed @app-state)) 2) " samples/second") 
+     (str (:speed @app-state) " samples/second") 
      (when (last (:pos-dis-samples @app-state))
        [:> sur/Button
         {:onClick (fn []
