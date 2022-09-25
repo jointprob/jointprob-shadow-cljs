@@ -77,6 +77,9 @@
     (map * prior)
     standardize)))
 
+(defn round-number-to-grid
+  [f]
+  (/ (.round js/Math (* 200 f)) 200))
 
 
 (defn r-likelihood-from-samples-for-this-sequence [samples]

@@ -8,6 +8,8 @@
 
 (defonce samples (repeatedly 100 #(if (>= 0.6 (rand)) :w :l)))
 
+(defonce ten-thousand-pos-dis-samples (repeatedly 1e4 #(d/sample-posterior samples)))
+
 (defonce app-state (r/atom {:pos-dis-samples []
                             :play-timeout-ID nil
                             :speed 50.0}))
@@ -84,17 +86,66 @@
    [rc/collapsible
     "Samples"
     [:div (str (:pos-dis-samples @app-state))]]
-   [oz/vega-lite 
-    {:hconcat
-     [(g/point-chart
-      (g/data (range 0 1e4) (:pos-dis-samples @app-state))
-      (g/titles  "Random Samples from Posterior"
-                 "sample number"
-                 "% of world that is water"))
-     (g/area-chart
-      (g/data (:pos-dis-samples @app-state))
-      (g/density-transform 0.01 [0 1])
-      (g/titles  "Density of Samples from Posterior"
-                 "% of world that is water"
-                 "Density"))]
-     }]])
+   (let [binned (frequencies (map d/round-number-to-grid (:pos-dis-samples @app-state)))
+         zeroes (zipmap d/grid-p (repeat 0))
+         zeroes-added (apply conj zeroes binned)]
+     [oz/vega-lite
+      {:hconcat
+       [(g/point-chart
+         (g/data (range 0 max-samples) (:pos-dis-samples @app-state))
+         (g/titles  "Random Samples from Posterior"
+                    "sample number"
+                    "% of world that is water"))
+        (g/point-chart
+         (g/size-of-mark 5)
+         (g/data (keys zeroes-added) (vals zeroes-added))
+         (g/titles  "Count of Samples in 200 Bins"
+                    "% of world that is water"
+                    "Count"))
+        (g/point-chart
+         (g/data (keys zeroes-added) (d/standardize (vals zeroes-added)))
+         (g/titles  "Standardize Counts to Average 1"
+                    "% of world that is water"
+                    "Density"))
+        ]}]
+     )
+     (let [binned (frequencies (map d/round-number-to-grid ten-thousand-pos-dis-samples))
+           zeroes (zipmap d/grid-p (repeat 0))
+           zeroes-added (apply conj zeroes binned)]
+     [oz/vega-lite
+      {:hconcat
+       [(g/point-chart
+         (g/data (range 0 1e4) ten-thousand-pos-dis-samples)
+         (g/titles  "10,000 Random Samples from Posterior"
+                    "sample number"
+                    "% of world that is water"))
+        (g/point-chart
+         (g/size-of-mark 5)
+         (g/data (keys zeroes-added) (vals zeroes-added))
+         (g/titles  "Count of Samples in 200 Bins"
+                    "% of world that is water"
+                    "Count"))
+        (g/point-chart
+         (g/data (keys zeroes-added) (d/standardize (vals zeroes-added)))
+         (g/titles  "Standardize Counts to Average 1"
+                    "% of world that is water"
+                    "Density"))]}])])
+
+;; [oz/vega-lite
+;;  {:hconcat
+;;   [(g/point-chart
+;;     (g/data (range 0 1e4) (repeatedly 1e4 (d/sample-posterior samples)))
+;;     (g/titles  "1e4 Random Samples from Posterior"
+;;                "sample number"
+;;                "% of world that is water"))
+;;    (g/point-chart
+;;     (g/size-of-mark 5)
+;;     (g/data (keys zeroes-added) (vals zeroes-added))
+;;     (g/titles  "Count of Samples in 200 Bins"
+;;                "% of world that is water"
+;;                "Count"))
+;;    (g/point-chart
+;;     (g/data (keys zeroes-added) (d/standardize (vals zeroes-added)))
+;;     (g/titles  "Standardize Counts to Average 1"
+;;                "% of world that is water"
+;;                "Density"))]}]

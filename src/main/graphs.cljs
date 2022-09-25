@@ -7,7 +7,7 @@
 
 
 (defn bar-chart [ & vl-maps]
-  (apply deep-merge {:mark     "bar",
+  (apply deep-merge {:mark     {:type :bar},
                      :encoding {:x {:field :x, :type "nominal"},
                                 :y {:field :y, :type "quantitative"}}}
               vl-maps))
@@ -49,15 +49,18 @@
          vl-maps))
 
 (defn line-chart [ & vl-maps]
-  (apply continuous-x-y-chart (conj vl-maps {:mark :line})))
+  (apply continuous-x-y-chart (conj vl-maps {:mark {:type :line}})))
 
 (defn area-chart [& vl-maps]
-  (apply continuous-x-y-chart (conj vl-maps {:mark :area})))
+  (apply continuous-x-y-chart (conj vl-maps {:mark {:type :area}})))
 
 (defn probability-dis [ & vl-maps]
   (deep-merge
          (apply line-chart vl-maps)
          (percentage-axis :x)))
+
+(defn size-of-mark [size]
+  {:mark {:size size}})
          
 
 (defn point-chart [ & vl-maps]
