@@ -11,7 +11,11 @@
 (defonce app-state (r/atom {:prior "Uniform"
                             :samples []
                             :play-timeout-ID nil
-                            :speed 1.0}))
+                            :speed 1.0
+                            :collapsed
+                            {:question false
+                             :prior true
+                             :formulae true}}))
 
 
 (def priors {"Uniform" (repeat 201 1)
@@ -201,7 +205,9 @@
                           (if (= land 1) "" "s")
                           " = ")]
     [:> sur/Container
-     [rc/collapsible "Question"
+     [rc/collapsible
+      (r/cursor app-state [:collapsed :question])
+      "Question"
       [:> sur/Segment {:raised true}
        [:div [:div.quote 
       "\"Suppose you have a globe representing our planet, the Earth. This version of the 
@@ -213,6 +219,7 @@
        from the globe.\""]
         [:div.attribution "from Richard McElreath's Satistical Rethinking section 2.2"]]]]
      [rc/collapsible
+      (r/cursor app-state [:collapsed :prior])
       "Prior"
       [:div
 
@@ -234,6 +241,7 @@
                                  "Pr(p)"))]]]]
      [buttons]
      [rc/collapsible
+      (r/cursor app-state [:collapsed :formulae])
        "Formulae"
        [:div
         [:p (str "Samples:  " (:samples @app-state))]

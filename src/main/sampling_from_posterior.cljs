@@ -12,7 +12,8 @@
 
 (defonce app-state (r/atom {:pos-dis-samples []
                             :play-timeout-ID nil
-                            :speed 50.0}))
+                            :speed 50.0
+                            :collapsed {:question false}}))
 
 (defn graph-posterior-dis []
   (let [[n land water] (d/count-land-or-water samples)
@@ -104,7 +105,9 @@
 
 (defn page []
   [:> sur/Container
-   [rc/collapsible "Question" 
+   [rc/collapsible 
+    (r/cursor app-state [:collapsed :question])
+    "Question" 
     [:> sur/Segment {:raised true}
      [:div [:div.quote "\"Suppose I offer you a bet. Tell me which value of p, the 
                         proportion of water on the Earth, you think is correct. I will 
