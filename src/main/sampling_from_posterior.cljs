@@ -3,8 +3,7 @@
             [oz.core :as oz]
             [graphs :as g]
             [dbinomial :as d]
-            [semantic-ui-react :as sur]
-            [react-custom :as rc]))
+            [semantic-ui-react :as sur]))
 
 (defonce samples (repeatedly 100 #(if (>= 0.6 (rand)) :w :l)))
 
@@ -79,73 +78,34 @@
                     (swap! app-state assoc-in [:pos-dis-samples] []))}
         "Clear samples"])]))
 
+(defn pos-dis-samples-graph [pos-dis-samples]
+  (let [binned (frequencies (map d/round-number-to-grid pos-dis-samples))
+        zeroes (zipmap d/grid-p (repeat 0))
+        zeroes-added (apply conj zeroes binned)]
+    [oz/vega-lite
+     {:hconcat
+      [(g/point-chart
+        (g/data (range 0 (count pos-dis-samples)) pos-dis-samples)
+        (g/titles  (str (count pos-dis-samples)
+                        " Samples from Posterior")
+                   "sample number"
+                   "% of world that is water"))
+       (g/point-chart
+        (g/size-of-mark 5)
+        (g/data (keys zeroes-added) (vals zeroes-added))
+        (g/titles  "Count of Samples in 200 Bins"
+                   "% of world that is water"
+                   "Count"))
+       (g/point-chart
+        (g/data (keys zeroes-added) (d/standardize (vals zeroes-added)))
+        (g/titles  "Standardize Counts to Average 1"
+                   "% of world that is water"
+                   "Density"))]}]))
+
 (defn page []
   [:> sur/Container
    [oz/vega-lite (graph-posterior-dis)]
-   [buttons samples]
-   [rc/collapsible
-    "Samples"
-    [:div (str (:pos-dis-samples @app-state))]]
-   (let [binned (frequencies (map d/round-number-to-grid (:pos-dis-samples @app-state)))
-         zeroes (zipmap d/grid-p (repeat 0))
-         zeroes-added (apply conj zeroes binned)]
-     [oz/vega-lite
-      {:hconcat
-       [(g/point-chart
-         (g/data (range 0 max-samples) (:pos-dis-samples @app-state))
-         (g/titles  "Random Samples from Posterior"
-                    "sample number"
-                    "% of world that is water"))
-        (g/point-chart
-         (g/size-of-mark 5)
-         (g/data (keys zeroes-added) (vals zeroes-added))
-         (g/titles  "Count of Samples in 200 Bins"
-                    "% of world that is water"
-                    "Count"))
-        (g/point-chart
-         (g/data (keys zeroes-added) (d/standardize (vals zeroes-added)))
-         (g/titles  "Standardize Counts to Average 1"
-                    "% of world that is water"
-                    "Density"))
-        ]}]
-     )
-     (let [binned (frequencies (map d/round-number-to-grid ten-thousand-pos-dis-samples))
-           zeroes (zipmap d/grid-p (repeat 0))
-           zeroes-added (apply conj zeroes binned)]
-     [oz/vega-lite
-      {:hconcat
-       [(g/point-chart
-         (g/data (range 0 1e4) ten-thousand-pos-dis-samples)
-         (g/titles  "10,000 Random Samples from Posterior"
-                    "sample number"
-                    "% of world that is water"))
-        (g/point-chart
-         (g/size-of-mark 5)
-         (g/data (keys zeroes-added) (vals zeroes-added))
-         (g/titles  "Count of Samples in 200 Bins"
-                    "% of world that is water"
-                    "Count"))
-        (g/point-chart
-         (g/data (keys zeroes-added) (d/standardize (vals zeroes-added)))
-         (g/titles  "Standardize Counts to Average 1"
-                    "% of world that is water"
-                    "Density"))]}])])
-
-;; [oz/vega-lite
-;;  {:hconcat
-;;   [(g/point-chart
-;;     (g/data (range 0 1e4) (repeatedly 1e4 (d/sample-posterior samples)))
-;;     (g/titles  "1e4 Random Samples from Posterior"
-;;                "sample number"
-;;                "% of world that is water"))
-;;    (g/point-chart
-;;     (g/size-of-mark 5)
-;;     (g/data (keys zeroes-added) (vals zeroes-added))
-;;     (g/titles  "Count of Samples in 200 Bins"
-;;                "% of world that is water"
-;;                "Count"))
-;;    (g/point-chart
-;;     (g/data (keys zeroes-added) (d/standardize (vals zeroes-added)))
-;;     (g/titles  "Standardize Counts to Average 1"
-;;                "% of world that is water"
-;;                "Density"))]}]
+   [buttons]
+   [pos-dis-samples-graph (:pos-dis-samples @app-state)]
+   [pos-dis-samples-graph ten-thousand-pos-dis-samples]
+   ])
