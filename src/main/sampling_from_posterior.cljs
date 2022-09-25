@@ -91,12 +91,13 @@
                    "sample number"
                    "% of world that is water"))
        (g/point-chart
-        (g/size-of-mark 5)
+        (g/mark-properties {:size 10 :opacity 1})
         (g/data (keys zeroes-added) (vals zeroes-added))
         (g/titles  "Count of Samples in 200 Bins"
                    "% of world that is water"
                    "Count"))
        (g/point-chart
+        (g/mark-properties {:size 10 :opacity 1})
         (g/data (keys zeroes-added) (d/standardize (vals zeroes-added)))
         (g/titles  "Standardize Counts to Average 1"
                    "% of world that is water"
@@ -109,3 +110,12 @@
    [pos-dis-samples-graph (:pos-dis-samples @app-state)]
    [pos-dis-samples-graph ten-thousand-pos-dis-samples]
    ])
+
+(comment
+  (g/point-chart
+   (g/size-of-mark 25)
+   (g/data [0] [1])
+   (g/titles  "Count of Samples in 200 Bins"
+              "% of world that is water"
+              "Count"))
+  )

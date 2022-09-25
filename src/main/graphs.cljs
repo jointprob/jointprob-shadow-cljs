@@ -59,6 +59,11 @@
          (apply line-chart vl-maps)
          (percentage-axis :x)))
 
+(defn mark-properties
+  "Pass a hash map of properties"
+  [props]
+  {:mark props})
+
 (defn size-of-mark [size]
   {:mark {:size size}})
          
