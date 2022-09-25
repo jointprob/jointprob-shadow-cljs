@@ -3,7 +3,8 @@
             [oz.core :as oz]
             [graphs :as g]
             [dbinomial :as d]
-            [semantic-ui-react :as sur]))
+            [semantic-ui-react :as sur]
+            [react-custom :as rc]))
 
 (defonce samples (repeatedly 100 #(if (>= 0.6 (rand)) :w :l)))
 
@@ -12,8 +13,6 @@
 (defonce app-state (r/atom {:pos-dis-samples []
                             :play-timeout-ID nil
                             :speed 50.0}))
-
-
 
 (defn graph-posterior-dis []
   (let [[n land water] (d/count-land-or-water samples)
@@ -105,11 +104,24 @@
 
 (defn page []
   [:> sur/Container
-   [oz/vega-lite (graph-posterior-dis)]
-   [buttons]
-   [pos-dis-samples-graph (:pos-dis-samples @app-state)]
-   [pos-dis-samples-graph ten-thousand-pos-dis-samples]
-   ])
+   [rc/collapsible "Question" 
+    [:> sur/Segment {:raised true}
+     [:div [:div.quote "\"Suppose I offer you a bet. Tell me which value of p, the 
+                        proportion of water on the Earth, you think is correct. I will 
+                        pay you $100, if you get it exactly right. But I will subtract 
+                        money from your gain, proportional to the distance of your 
+                        decision from the correct value. Precisely, your loss is 
+                        proportional to the absolute value of d − p, where d is your 
+                        decision and p is the correct answer. We could change the precise 
+                        dollar values involved, without changing the important aspects of
+                        this problem. What matters is that the loss is proportional to 
+                        the distance of your decision from the true value.\""] 
+      [:div.attribution "from Richard McElreath's Satistical Rethinking section 3.2"]]]]
+   [:> sur/Container
+    [oz/vega-lite (graph-posterior-dis)]
+    [buttons]
+    [pos-dis-samples-graph (:pos-dis-samples @app-state)]
+    [pos-dis-samples-graph ten-thousand-pos-dis-samples]]])
 
 (comment
   (g/point-chart

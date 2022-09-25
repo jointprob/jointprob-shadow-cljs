@@ -201,6 +201,17 @@
                           (if (= land 1) "" "s")
                           " = ")]
     [:> sur/Container
+     [rc/collapsible "Question"
+      [:> sur/Segment {:raised true}
+       [:div [:div.quote 
+      "\"Suppose you have a globe representing our planet, the Earth. This version of the 
+       world is small enough to hold in your hands. You are curious how much of the 
+       surface is covered in water. You adopt the following strategy: You will toss the 
+       globe up in the air. When you catch it, you will record whether or not the surface 
+       under your right index finger is water or land. Then you toss the globe up in the 
+       air again and repeat the procedure. This strategy generates a sequence of samples 
+       from the globe.\""]
+        [:div.attribution "from Richard McElreath's Satistical Rethinking section 2.2"]]]]
      [rc/collapsible
       "Prior"
       [:div
