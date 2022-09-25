@@ -102,3 +102,6 @@
                        (if (< accept-or-reject relative-likelihood-of-p)
                          p
                          nil)))))))
+(defn  median [coll-of-numbers]
+  (nth (sort coll-of-numbers)
+       (js/Math.floor (/ (count coll-of-numbers) 2))))

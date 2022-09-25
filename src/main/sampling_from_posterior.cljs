@@ -120,17 +120,32 @@
                         this problem. What matters is that the loss is proportional to 
                         the distance of your decision from the true value.\""] 
       [:div.attribution "from Richard McElreath's Satistical Rethinking section 3.2"]]]]
-   [:> sur/Container
-    [oz/vega-lite (graph-posterior-dis)]
-    [buttons]
-    [pos-dis-samples-graph (:pos-dis-samples @app-state)]
-    [pos-dis-samples-graph ten-thousand-pos-dis-samples]]])
+   [:> sur/Container 
+      [oz/vega-lite (graph-posterior-dis)]
+      [buttons]
+      [pos-dis-samples-graph (:pos-dis-samples @app-state)]
+      [pos-dis-samples-graph ten-thousand-pos-dis-samples]
+      (let [this-median (.toFixed (d/median ten-thousand-pos-dis-samples) 6)
+            loss (js/Math.round (* 100 (abs (- 0.6 this-median))))]
+        [:> sur/Segment {:raised true}
+         [:p (str "The median sample of the collection of ten thousand samples is "
+                  this-median
+                  " to 6 significant figures."
+                  " The median sample in this scenario should minimize our potential losses."
+                  " If we say we lose $1 for every 0.01 we are away from the 
+             correct answer then we will have lost (0.6 - " this-median ") * 100 = $"
+                  loss ".")]
+         [:p (str "And we are left with the $100 McElreath will give us minus the loss. $100 - " loss " = $" (- 100 loss) ".")]])]])
+   
 
 (comment
+  (d/round-number-to-grid(nth (sort ten-thousand-pos-dis-samples)
+                          (js/Math.floor( / (count ten-thousand-pos-dis-samples) 2)))) 
+
   (g/point-chart
    (g/size-of-mark 25)
    (g/data [0] [1])
    (g/titles  "Count of Samples in 200 Bins"
               "% of world that is water"
-              "Count"))
-  )
+              "Count")))
+  
