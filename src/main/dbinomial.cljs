@@ -105,3 +105,11 @@
 (defn  median [coll-of-numbers]
   (nth (sort coll-of-numbers)
        (js/Math.floor (/ (count coll-of-numbers) 2))))
+
+(defn linear-loss
+  "Given pos-dis posterior distribution find the expected loss for a grid of values of d."
+  [pos-dis]
+  (map
+   (fn [d]
+     (/ (apply + (map (fn [p, likelihood] (* (abs (- d p)) likelihood)) grid-p pos-dis)) (count grid-p)))
+   grid-p))
