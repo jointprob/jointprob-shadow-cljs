@@ -4,7 +4,7 @@
             [graphs :as g]
             [dbinomial :as d]
             [semantic-ui-react :as sur]
-            [react-custom :as rc]))
+            [reagent-custom :as rc]))
 
 (defonce samples (repeatedly 100 #(if (>= 0.6 (rand)) :w :l)))
 

@@ -1,4 +1,4 @@
-(ns react-custom
+(ns reagent-custom
   (:require [reagent.core :as r]
             [semantic-ui-react :as sur]))
 

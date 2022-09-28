@@ -5,7 +5,7 @@
             [oz.core :as oz]
             [reagent.core :as r]
             [semantic-ui-react :as sur]
-            [react-custom :as rc]))
+            [reagent-custom :as rc]))
 
 
 (defonce app-state (r/atom {:prior "Uniform"
