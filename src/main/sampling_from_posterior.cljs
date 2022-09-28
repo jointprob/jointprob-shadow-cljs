@@ -175,7 +175,7 @@
            [:p "Press play below to see an animation of taking up to 2,000 samples from the posterior. Hopefully this may aid understanding of what these samples are."]]]
          [buttons]
          [pos-dis-samples-graph (:pos-dis-samples @app-state)]
-         [:img {:src "/imgs/1e4samples.png"}]
+         [:img {:src "imgs/1e4samples.png"}]
 
          (let [this-median (.toFixed (d/median ten-thousand-pos-dis-samples) 6)
                loss (js/Math.round (* 100 (abs (- 0.6 this-median))))]
