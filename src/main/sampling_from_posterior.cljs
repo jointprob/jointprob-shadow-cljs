@@ -109,8 +109,9 @@
    [rc/collapsible 
     (r/cursor app-state [:collapsed :question])
     "Question" 
-    [:> sur/Segment {:raised true}
-     [:div [:div.quote "\"Suppose I offer you a bet. Tell me which value of p, the 
+    [:<>
+     [:> sur/Segment {:raised true}
+      [:div [:div.quote "\"Suppose I offer you a bet. Tell me which value of p, the 
                         proportion of water on the Earth, you think is correct. I will 
                         pay you $100, if you get it exactly right. But I will subtract 
                         money from your gain, proportional to the distance of your 
@@ -119,13 +120,15 @@
                         decision and p is the correct answer. We could change the precise 
                         dollar values involved, without changing the important aspects of
                         this problem. What matters is that the loss is proportional to 
-                        the distance of your decision from the true value.\""] 
-      [:div.attribution "from Richard McElreath's Satistical Rethinking section 3.2"]]]]
+                        the distance of your decision from the true value.\""]
+       [:div.attribution "from Richard McElreath's Satistical Rethinking section 3.2"]]]
+     [:div "McElreath doesn't say how many dollars we are penalised but let's say $1 for every 0.01
+             error."]]]
    [:> sur/Container
+    [:div "First let's calculate another posterior distribution calculated from 100 random samples,
+           the probability of each of these samples being :w is 0.6 (which is the unobserved parameter 
+           we are trying to estimate by Bayesian inference)."]
     [oz/vega-lite (graph-posterior-dis)]
-    [buttons]
-    [pos-dis-samples-graph (:pos-dis-samples @app-state)]
-    [pos-dis-samples-graph ten-thousand-pos-dis-samples]
     (let [pos-dis (d/posterior-distribution samples)
           loss (d/linear-loss pos-dis)
           [d-for-min-loss
@@ -135,9 +138,11 @@
         (r/cursor app-state [:collapsed :minimizing-loss-function])
         "Minimizing our loss function"
         [:> sur/Segment {:raised true}
-         [:div [:p "We want to minimize the absolute difference between d our prediction and the actual p."]
+         [:div [:p "We want to minimize the absolute difference between d our prediction and the actual p.
+                    We can do this in two ways we can work out the minimum loss for the linear loss function abs(d - p)
+                    directly from the posterior distribution as follows."]
           [:ul
-           [:li "We will iterate over values of d from 0 to 1 with a step size of 0.005. And for each value of d:"]
+           [:li "We iterate over values of d from 0 to 1 with a step size of 0.005. And for each value of d:"]
            [:ul
             [:li "We will iterate over the x-axis of our posterior distribution which is a function that describes the likelihood of values of p between 0 and 1."]
             [:li "Along the x-axis of our distribution each point on our posterior distribution corresponds to an expected loss for a given d 
@@ -146,8 +151,9 @@
             [:li "For each point on the curve we multiply the expected loss by the likelihood at that point."]
             [:li "Then average across the curve to get a full estimate of the expected loss for this d,
                taking into account all the possible values of p described by the posterior distribution and their likelihood."]]]
-          [:p (str "This would result in the following plot of exepected losses for the range of possible values of d. With a minimum of "
-                   (.toFixed min-loss 6) " when d is " d-for-min-loss ".")]]]]
+          [:p (str "This would result in the following plot of exepected losses for the range of possible values of d. With")
+                   [:strong " a minimum of " 
+                   (.toFixed min-loss 6) " when d is " d-for-min-loss] "."]]]]
 
        [oz/vega-lite
         {:layer [(g/line-chart
@@ -156,16 +162,26 @@
                   (g/titles  "Expected Loss"
                              "decision"
                              "expected loss"))]}]])
+    [:> sur/Segment {:raised true}
+         [:div [:p "We can also use samples from the posterior distribution to estimate what value for d will give us the least expected loss.
+                    We'll take 10,000 samples from the posterior distribution to simulate what the value of p might be, samples of these p values
+                    are in proportion to what inference tells us is likelihood of that value, given the data we have seen."]
+          [:p "Theory tells us that the median of these samples will minimize our expected loss, for this linear loss function abs(d - p)."]
+          [:p "Press play below to see an animation of taking up to 2,000 samples from the posterior. Hopefully this may aid understanding of what these samples are."]]]
+    [buttons]
+    [pos-dis-samples-graph (:pos-dis-samples @app-state)]
+    [:img {:src "/imgs/1e4samples.png"}]
+    
     (let [this-median (.toFixed (d/median ten-thousand-pos-dis-samples) 6)
           loss (js/Math.round (* 100 (abs (- 0.6 this-median))))]
       [:> sur/Segment {:raised true}
-       [:p (str "The median sample of the collection of ten thousand samples is "
+       [:p [:strong "The median sample of the collection of ten thousand samples is "
                 this-median
-                " to 6 significant figures."
+                " to 6 significant figures."]
                 " The median sample in this scenario should minimize our potential losses."
                 " If we say we lose $1 for every 0.01 we are away from the 
              correct answer then we will have lost (0.6 - " this-median ") * 100 = $"
-                loss ".")]
+                loss "."]
        [:p (str "And we are left with the $100 McElreath will give us minus the loss. $100 - " loss " = $" (- 100 loss) ".")]])]])
    
 
