@@ -12,7 +12,7 @@
 
 (defonce app-state (r/atom {:pos-dis-samples []
                             :play-timeout-ID nil
-                            :speed 50.0
+                            :speed 50
                             :collapsed {:question false
                                         :minimizing-loss-function false
                                         :posterior false}}))
@@ -39,14 +39,17 @@
 (defn not-reached-sample-limit [samples]
   (< (count samples) max-samples))
 
-(defn new-random-sample [state samples]
-  (update-in state [:pos-dis-samples] conj (d/sample-posterior samples)))
+(defn new-random-samples [state samples]
+  (update-in state [:pos-dis-samples] concat [] 
+             (into [] (repeatedly  
+                       (min (:speed state) (- max-samples (count (:pos-dis-samples state))))
+                       #(d/sample-posterior samples)))))
 
 (defn play []
-  (swap! app-state new-random-sample samples)
+  (swap! app-state new-random-samples samples)
   (swap! app-state assoc-in [:play-timeout-ID]
          (if (not-reached-sample-limit (:pos-dis-samples @app-state))
-           (js/setTimeout play (js/Math.floor (/ 1000 (:speed @app-state))))
+           (js/setTimeout play 1000)
            nil)))
 
 (defn pause []
@@ -69,11 +72,16 @@
                                              (play))}
                                  [:> sur/Icon {:name "play"}]]))}]
      "Speed : "
-     [:input {:type "range" :value (:speed @app-state) :min 5 :max 50 :step 5
-              :on-change (fn [e]
-                           (let [new-value (js/parseFloat (.. e -target -value))]
-                             (swap! app-state assoc-in [:speed] new-value)))}]
-     (str (:speed @app-state) " samples/second") 
+     [:> sur/Select {:options [{:value 1 :text "1 sample / second"}
+                               {:value 5 :text "5 samples / second"}
+                               {:value 10 :text "10 samples / second"}
+                               {:value 50 :text "50 samples / second"}
+                               {:value 100 :text "100 samples / second"}
+                               {:value 200 :text "200 samples / second"}]
+
+                     :value (:speed @app-state)
+                     :on-change (fn [_ data]
+                                  (swap! app-state assoc-in [:speed] (.-value data )))}]
      (when (last (:pos-dis-samples @app-state))
        [:> sur/Button
         {:onClick (fn []
@@ -126,68 +134,69 @@
      [:div "McElreath doesn't say how many dollars we are penalised but let's say $1 for every 0.01
              error."]]]
     [:> sur/Container
-        [rc/collapsible
-         (r/cursor app-state [:collapsed :posterior])
-         "Posterior Distribution"
-         [:<>
-          [:div "First let's calculate another posterior distribution calculated from 100 random samples,
+     [rc/collapsible
+      (r/cursor app-state [:collapsed :posterior])
+      "Posterior Distribution"
+      [:<>
+       [:div "First let's calculate another posterior distribution calculated from 100 random samples,
            the probability of each of these samples being :w is 0.6 (which is the unobserved parameter 
            we are trying to estimate by Bayesian inference)."]
-          [oz/vega-lite (graph-posterior-dis)]]]
-         (let [pos-dis (d/posterior-distribution samples)
-               loss (d/linear-loss pos-dis)
-               [d-for-min-loss
-                min-loss] (apply min-key second (zipmap d/grid-p (d/linear-loss (d/posterior-distribution samples))))]
-           [:<>
-            [rc/collapsible
-             (r/cursor app-state [:collapsed :minimizing-loss-function])
-             "Minimizing our loss function"
-             [:> sur/Segment {:raised true}
-              [:div [:p "We want to minimize the absolute difference between d our prediction and the actual p.
+       [oz/vega-lite (graph-posterior-dis)]]]
+     (let [pos-dis (d/posterior-distribution samples)
+           loss (d/linear-loss pos-dis)
+           [d-for-min-loss
+            min-loss] (apply min-key second (zipmap d/grid-p (d/linear-loss (d/posterior-distribution samples))))]
+       [:<>
+        [rc/collapsible
+         (r/cursor app-state [:collapsed :minimizing-loss-function])
+         "Minimizing our loss function"
+         [:> sur/Segment {:raised true}
+          [:div [:p "We want to minimize the absolute difference between d our prediction and the actual p.
                     We can do this in two ways we can work out the minimum loss for the linear loss function abs(d - p)
                     directly from the posterior distribution as follows."]
-               [:ul
-                [:li "We iterate over values of d from 0 to 1 with a step size of 0.005. And for each value of d:"]
-                [:ul
-                 [:li "We will iterate over the x-axis of our posterior distribution which is a function that describes the likelihood of values of p between 0 and 1."]
-                 [:li "Along the x-axis of our distribution each point on our posterior distribution corresponds to an expected loss for a given d 
+           [:ul
+            [:li "We iterate over values of d from 0 to 1 with a step size of 0.005. And for each value of d:"]
+            [:ul
+             [:li "We will iterate over the x-axis of our posterior distribution which is a function that describes the likelihood of values of p between 0 and 1."]
+             [:li "Along the x-axis of our distribution each point on our posterior distribution corresponds to an expected loss for a given d 
               - the absolute value of d- p."]
-                 [:li "And the y-axis describes the likelihood of seeing that loss."]
-                 [:li "For each point on the curve we multiply the expected loss by the likelihood at that point."]
-                 [:li "Then average across the curve to get a full estimate of the expected loss for this d,
+             [:li "And the y-axis describes the likelihood of seeing that loss."]
+             [:li "For each point on the curve we multiply the expected loss by the likelihood at that point."]
+             [:li "Then average across the curve to get a full estimate of the expected loss for this d,
                taking into account all the possible values of p described by the posterior distribution and their likelihood."]]]
-               [:p (str "This would result in the following plot of exepected losses for the range of possible values of d. With")
-                [:strong " a minimum of "
-                 (.toFixed min-loss 6) " when d is " d-for-min-loss] "."]]]]
+           [:p (str "This would result in the following plot of exepected losses for the range of possible values of d. With")
+            [:strong " a minimum of "
+             (.toFixed min-loss 6) " when d is " d-for-min-loss] "."]]]]
 
-            [oz/vega-lite
-             {:layer [(g/line-chart
-                       (g/data d/grid-p
-                               loss)
-                       (g/titles  "Expected Loss"
-                                  "decision"
-                                  "expected loss"))]}]])
-         [:> sur/Segment {:raised true}
-          [:div [:p "We can also use samples from the posterior distribution to estimate what value for d will give us the least expected loss.
+        [oz/vega-lite
+         {:layer [(g/line-chart
+                   (g/data d/grid-p
+                           loss)
+                   (g/titles  "Expected Loss"
+                              "decision"
+                              "expected loss"))]}]])
+     [:> sur/Segment {:raised true}
+      [:div [:p "We can also use samples from the posterior distribution to estimate what value for d will give us the least expected loss.
                     We'll take 10,000 samples from the posterior distribution to simulate what the value of p might be, samples of these p values
                     are in proportion to what inference tells us is likelihood of that value, given the data we have seen."]
-           [:p "Theory tells us that the median of these samples will minimize our expected loss, for this linear loss function abs(d - p)."]
-           [:p "Press play below to see an animation of taking up to 2,000 samples from the posterior. Hopefully this may aid understanding of what these samples are."]]]
-         [buttons]
-         [pos-dis-samples-graph (:pos-dis-samples @app-state)]
-         [:img {:src "imgs/1e4samples.png"}]
+       [:p "Theory tells us that the median of these samples will minimize our expected loss, for this linear loss function abs(d - p)."]
+       [:p "Press play below to see an animation of taking up to 2,000 samples from the posterior. Hopefully this may aid understanding of what these samples are."]]]
+     [buttons]
+     [pos-dis-samples-graph (:pos-dis-samples @app-state)]
+     [pos-dis-samples-graph ten-thousand-pos-dis-samples]
 
-         (let [this-median (.toFixed (d/median ten-thousand-pos-dis-samples) 6)
-               loss (js/Math.round (* 100 (abs (- 0.6 this-median))))]
-           [:> sur/Segment {:raised true}
-            [:p [:strong "The median sample of the collection of ten thousand samples is "
-                 this-median
-                 " to 6 significant figures."]
-             " The median sample in this scenario should minimize our potential losses."
-             " If we say we lose $1 for every 0.01 we are away from the 
+
+     (let [this-median (.toFixed (d/median ten-thousand-pos-dis-samples) 6)
+           loss (js/Math.round (* 100 (abs (- 0.6 this-median))))]
+       [:> sur/Segment {:raised true}
+        [:p [:strong "The median sample of the collection of ten thousand samples is "
+             this-median
+             " to 6 significant figures."]
+         " The median sample in this scenario should minimize our potential losses."
+         " If we say we lose $1 for every 0.01 we are away from the 
              correct answer then we will have lost (0.6 - " this-median ") * 100 = $"
-             loss "."]
-            [:p (str "And we are left with the $100 McElreath will give us minus the loss. $100 - " loss " = $" (- 100 loss) ".")]])]])
+         loss "."]
+        [:p (str "And we are left with the $100 McElreath will give us minus the loss. $100 - " loss " = $" (- 100 loss) ".")]])]])
    
 
 (comment

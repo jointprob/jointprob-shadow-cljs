@@ -49,6 +49,9 @@
      (reduce (fn [last-step _] (bayesian-binary-update true last-step)) uniform-prior (repeat times-found 1))
      (#(reduce (fn [last-step _] (bayesian-binary-update false last-step)) % (repeat times-not-found 1))))))
 
+(def relative-likelihood-for-this-sequence-memo
+  (memoize relative-likelihood-for-this-sequence))
+
 (defn standardize
   "make average of values in coll r = 1"
   [r]
@@ -63,7 +66,7 @@
 
 (defn relative-likelihood-from-samples [samples]
   (let [[n _ water] (count-land-or-water samples)]
-    (relative-likelihood water n)))
+    (relative-likelihood-memo water n)))
 
 (defn posterior-distribution
   "If no prior given assume uniform prior."
@@ -84,7 +87,7 @@
 
 (defn r-likelihood-from-samples-for-this-sequence [samples]
   (let [[n _ water] (count-land-or-water samples)]
-    (relative-likelihood-for-this-sequence water n)))
+    (relative-likelihood-for-this-sequence-memo water n)))
 
 (defn sample-posterior 
   "Calculate posterior from :w or :l samples and then 
