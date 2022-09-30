@@ -81,7 +81,7 @@
 
                      :value (:speed @app-state)
                      :on-change (fn [_ data]
-                                  (swap! app-state assoc-in [:speed] (.-value data )))}]
+                                  (swap! app-state assoc-in [:speed] (.-value data)))}]
      (when (last (:pos-dis-samples @app-state))
        [:> sur/Button
         {:onClick (fn []
@@ -97,7 +97,7 @@
       [(g/point-chart
         (g/data (range 0 (count pos-dis-samples)) pos-dis-samples)
         (g/titles  (str (count pos-dis-samples)
-                        " Samples from Posterior")
+                       " Samples from Posterior")
                    "sample number"
                    "% of world that is water"))
        (g/point-chart
@@ -111,7 +111,7 @@
         (g/data (keys zeroes-added) (d/standardize (vals zeroes-added)))
         (g/titles  "Standardize Counts to Average 1"
                    "% of world that is water"
-                   "Density"))]}]))
+                   "Sample Density"))]}]))
 
 (defn page []
   [:> sur/Container
@@ -125,7 +125,7 @@
                         pay you $100, if you get it exactly right. But I will subtract 
                         money from your gain, proportional to the distance of your 
                         decision from the correct value. Precisely, your loss is 
-                        proportional to the absolute value of d − p, where d is your 
+                        proportional to the absolute value of d - p, where d is your 
                         decision and p is the correct answer. We could change the precise 
                         dollar values involved, without changing the important aspects of
                         this problem. What matters is that the loss is proportional to 
@@ -164,7 +164,7 @@
              [:li "For each point on the curve we multiply the expected loss by the likelihood at that point."]
              [:li "Then average across the curve to get a full estimate of the expected loss for this d,
                taking into account all the possible values of p described by the posterior distribution and their likelihood."]]]
-           [:p (str "This would result in the following plot of exepected losses for the range of possible values of d. With")
+           [:p (str "This would result in the following plot of expected losses for the range of possible values of d. With")
             [:strong " a minimum of "
              (.toFixed min-loss 6) " when d is " d-for-min-loss] "."]]]]
 
