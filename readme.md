@@ -1,3 +1,6 @@
+# See deployed app
+
+Here: https://jointprob.github.io/jointprob-shadow-cljs/
 # Preparation and after any changes to package.json
 
 Install node and then in root directory:
@@ -22,3 +25,13 @@ npm install
 ## Cider on Emacs
 
 * Similar to above?
+
+# Automatic deployal to github page
+
+Pushes to the master github branch are automatically deployed by github actions to : https://jointprob.github.io/jointprob-shadow-cljs/
+
+See .github/workflows/main.yml file in this repo to find out how.
+
+The automatic build should take less than 3 minutes after the push. Check here for build progress:
+
+https://github.com/jointprob/jointprob-shadow-cljs/actions
