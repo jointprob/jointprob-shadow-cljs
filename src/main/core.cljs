@@ -15,8 +15,9 @@
                                                 "sampling-from-posterior" 2
                                                 1))
     [:div
-     [:> sur/Menu {:fixed "top"}
-      [:> sur/MenuItem {:as "header"} "JointProb"]
+     [:> sur/Menu {:fixed "top" :pointing true}
+      [:> sur/MenuItem {:as "a" :href "https://scicloj.github.io/docs/community/groups/jointprob/"}
+       [:> sur/Icon {:name "external"}] "JointProb Study Group"]
       [:> sur/MenuItem {:as "a"
                         :href "#bayes-update"
                         :active (== (:showing-page @app-state) 1)
