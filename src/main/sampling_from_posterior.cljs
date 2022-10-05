@@ -150,31 +150,32 @@
         [rc/collapsible
          (r/cursor app-state [:collapsed :minimizing-loss-function])
          "Minimizing our loss function"
-         [:> sur/Segment {:raised true}
-          [:div [:p "We want to minimize the absolute difference between d our prediction and the actual p.
+         [:<>
+          [:> sur/Segment {:raised true}
+           [:div [:p "We want to minimize the absolute difference between d our prediction and the actual p.
                     We can do this in two ways we can work out the minimum loss for the linear loss function abs(d - p)
                     directly from the posterior distribution as follows."]
-           [:ul
-            [:li "We iterate over values of d from 0 to 1 with a step size of 0.005. And for each value of d:"]
             [:ul
-             [:li "We will iterate over the x-axis of our posterior distribution which is a function that describes the likelihood of values of p between 0 and 1."]
-             [:li "Along the x-axis of our distribution each point on our posterior distribution corresponds to an expected loss for a given d 
+             [:li "We iterate over values of d from 0 to 1 with a step size of 0.005. And for each value of d:"]
+             [:ul
+              [:li "We will iterate over the x-axis of our posterior distribution which is a function that describes the likelihood of values of p between 0 and 1."]
+              [:li "Along the x-axis of our distribution each point on our posterior distribution corresponds to an expected loss for a given d 
               - the absolute value of d- p."]
-             [:li "And the y-axis describes the likelihood of seeing that loss."]
-             [:li "For each point on the curve we multiply the expected loss by the likelihood at that point."]
-             [:li "Then average across the curve to get a full estimate of the expected loss for this d,
+              [:li "And the y-axis describes the likelihood of seeing that loss."]
+              [:li "For each point on the curve we multiply the expected loss by the likelihood at that point."]
+              [:li "Then average across the curve to get a full estimate of the expected loss for this d,
                taking into account all the possible values of p described by the posterior distribution and their likelihood."]]]
-           [:p (str "This would result in the following plot of expected losses for the range of possible values of d. With")
-            [:strong " a minimum of "
-             (.toFixed min-loss 6) " when d is " d-for-min-loss] "."]]]]
+            [:p (str "This would result in the following plot of expected losses for the range of possible values of d. With")
+             [:strong " a minimum of "
+              (.toFixed min-loss 6) " when d is " d-for-min-loss] "."]]]
 
-        [oz/vega-lite
-         {:layer [(g/line-chart
-                   (g/data d/grid-p
-                           loss)
-                   (g/titles  "Expected Loss"
-                              "decision"
-                              "expected loss"))]}]])
+          [oz/vega-lite
+           {:layer [(g/line-chart
+                     (g/data d/grid-p
+                             loss)
+                     (g/titles  "Expected Loss"
+                                "decision"
+                                "expected loss"))]}]]]])
      [:> sur/Segment {:raised true}
       [:div [:p "We can also use samples from the posterior distribution to estimate what value for d will give us the least expected loss.
                     We'll take 10,000 samples from the posterior distribution to simulate what the value of p might be, samples of these p values
