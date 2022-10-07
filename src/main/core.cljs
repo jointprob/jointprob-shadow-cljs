@@ -2,6 +2,7 @@
   (:require [reagent.dom :as rdom]
             [bayes-update]
             [sampling-from-posterior]
+            [normal-distribution]
             [reagent.core :as r]
             [semantic-ui-react :as sur]))
 
@@ -13,6 +14,7 @@
     (swap! app-state assoc-in [:showing-page] (case anchor
                                                 "bayes-update" 1
                                                 "sampling-from-posterior" 2
+                                                "normal-distribution" 3
                                                 1))
     [:div
      [:> sur/Menu {:fixed "top" :pointing true}
@@ -31,11 +33,20 @@
                         :on-click (fn [e]
                                     (swap! app-state assoc-in [:showing-page] 2)
                                     nil)}
-       "Sampling from Posterior"]]
+       "Sampling from Posterior"]
+      [:> sur/MenuItem {:as "a"
+                        :href "#normal-distribution"
+                        :active (== (:showing-page @app-state) 3)
+                        :on-click (fn [e]
+                                    (swap! app-state assoc-in [:showing-page] 3)
+                                    nil)}
+       "Normal Distribution"]
+]
      [:> sur/Container {:style {:marginTop "7em"}}
       (case (:showing-page @app-state)
         1 [bayes-update/page]
-        2 [sampling-from-posterior/page])]]))
+        2 [sampling-from-posterior/page]
+        3 [normal-distribution/page])]]))
 
 
 (defn ^:dev/after-load start []
