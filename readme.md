@@ -18,9 +18,9 @@ npm install
 * Click on REPL at bottom of editor window.
 * Click "Start your project with a REPL (aka Jack-in)" at the drop down that appears at the top of editor window."
 * Select "shadow-cljs" project type.
-* Select :my-build-id and press OK.
-* You will see command "npx shadow-cljs -d cider/cider-nrepl:0.28.5 watch :my-build-id" run in the terminal window in the bottom pane of editor.
-* Choose to connect to ":my-build-id" at the top.
+* Select :bayes and press OK.
+* You will see command "npx shadow-cljs -d cider/cider-nrepl:0.28.5 watch :bayes" run in the terminal window in the bottom pane of editor.
+* Choose to connect to ":bayes" at the top.
 
 ## Cider on Emacs
 

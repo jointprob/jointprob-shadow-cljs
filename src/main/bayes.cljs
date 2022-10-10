@@ -1,4 +1,4 @@
-(ns core
+(ns bayes
   (:require [reagent.dom :as rdom]
             [bayes-update]
             [sampling-from-posterior]

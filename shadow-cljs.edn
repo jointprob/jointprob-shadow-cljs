@@ -1,10 +1,13 @@
 ;; shadow-cljs configuration
-{
-:deps true
+{:deps true
 
  :dev-http {8700 "public"}
 
- :builds {:my-build-id {:output-dir "public/js/compiled"
-                        :asset-path "/js/compiled"
-                        :target     :browser
-                        :modules {:main {:init-fn core/init}}}}}
+ :builds {:bayes {:output-dir "public/js/compiled"
+                  :asset-path "/js/compiled"
+                  :target     :browser
+                  :modules {:bayes {:init-fn bayes/init}}}
+          :memory-efficiency {:output-dir "public/js/compiled"
+                              :asset-path "/js/compiled"
+                              :target     :browser
+                              :modules {:memory-efficiency {:init-fn memory-efficiency/init}}}}}
