@@ -149,58 +149,7 @@
                       (map
                        #(assoc %1 :ll %2)
                        grid
-                       (nth posteriors (inc no-of-height-samples))))
-      ])]])
-  ;; (let [prior-title (if (zero? no-of-height-samples)
-  ;;                     "Prior"
-  ;;                     "Prior after last height / before new height")
-  ;;       prior-before-this-sample-graph
-  ;;       (g/probability-dis
-  ;;        (g/data d/grid-p (d/posterior-distribution
-  ;;                          (butlast samples)))
-  ;;        (g/titles prior-title
-  ;;                  "% of world that is water"
-  ;;                  (str "Pr(" last-water "," last-land " ⎹ p)")))
-  ;;       eq1 (str "Pr(" new-water "," new-land " ⎹ p)")
-  ;;       new-sample-graph
-  ;;       (g/probability-dis
-  ;;        (g/data d/grid-p
-  ;;                (d/relative-likelihood-from-samples (list (last samples))))
-  ;;        (g/titles (str "Probability of new sample \"" (last samples) "\" " eq1)
-  ;;                  "% of world that is water"
-  ;;                  eq1))
-
-  ;;       eq2 (str "Pr(" water "," land " ⎹ p)")
-  ;;       rlikelihood-graph-one-perm
-  ;;       (g/probability-dis
-  ;;        (g/data d/grid-p
-  ;;                (d/r-likelihood-from-samples-for-this-sequence samples))
-  ;;        (g/titles (str  "Probability of This (" water "," land ") Sequence")
-  ;;                  "% of world that is water"
-  ;;                  eq2)
-  ;;        (g/axis-format :y ".3e"))
-  ;;       rlikelihood-graph-all-perms
-  ;;       (g/probability-dis
-  ;;        (g/data
-  ;;         d/grid-p
-  ;;         (d/relative-likelihood-from-samples samples))
-  ;;        (g/titles (str "Probability of Any (" water "," land ") Sequence Pr(W,L ⎹ p)")
-  ;;                  "% of world that is water"
-  ;;                  eq2))
-  ;;       pos-graph
-  ;;       (g/probability-dis
-  ;;        (g/data d/grid-p (d/posterior-distribution
-  ;;                          samples))
-  ;;        (g/titles  "Posterior Pr(p ⎹ W,L)"
-  ;;                   "% of world that is water"
-  ;;                   "Pr(p ⎹ W,L)"))]
-  ;;   {:vconcat
-  ;;    (if (zero? no-of-height-samples)
-  ;;      [{:hconcat [prior-before-this-sample-graph]}
-  ;;       {:hconcat [rlikelihood-graph-one-perm rlikelihood-graph-all-perms pos-graph]}]
-  ;;      [{:hconcat [prior-before-this-sample-graph new-sample-graph]}
-  ;;       {:hconcat [rlikelihood-graph-one-perm rlikelihood-graph-all-perms pos-graph]}]
-  ;;      )}))
+                       (nth posteriors (inc no-of-height-samples))))])]])
 
 (defn not-reached-sample-limit [no-of-height-samples]
   (< no-of-height-samples (count adult-heights)))
