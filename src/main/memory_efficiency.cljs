@@ -52,6 +52,21 @@
      [:button
       {:onClick (fn [] (swap! app-state assoc-in [:no-of-points] 0))}
       "Clear samples"])])
+(def current-view (r/atom nil))
+(defn finalize! [res]
+  (when @current-view
+    (.finalize @current-view))
+  (reset! current-view res))
+
+(comment
+  ;;after at least one graph update
+  @current-view
+  ;; => #object[View [object Object]]
+  (.finalize @current-view)
+  ;; => #object[View [object Object]]
+
+  )
+
 
 (defn page []
   [:div
@@ -62,7 +77,8 @@
      (g/titles  (str (:no-of-points @app-state)
                      " points")
                 "point number"
-                "rand number"))]])
+                "rand number"))
+    {:view-callback finalize!}]])
 
 
 
