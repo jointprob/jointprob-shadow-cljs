@@ -8,11 +8,18 @@
                             :play-timeout-ID nil
                             :speed 50}))
 
+(def current-view (r/atom nil))
+(defn store-view! [res]
+  (reset! current-view res))
+
+
 (def max-no-of-points 10000)
 
 (defonce points (repeatedly max-no-of-points rand))
 
 (defn play []
+  (when @current-view
+    (.finalize @current-view))
   (swap! app-state (fn [{:keys [no-of-points speed] :as state}]
                      (-> (assoc-in state [:no-of-points] (min (+ no-of-points speed) max-no-of-points))
                          (assoc-in [:play-timeout-ID] (if (< (+ no-of-points speed) max-no-of-points)
@@ -52,19 +59,11 @@
      [:button
       {:onClick (fn [] (swap! app-state assoc-in [:no-of-points] 0))}
       "Clear samples"])])
-(def current-view (r/atom nil))
-(defn finalize! [res]
-  (when @current-view
-    (.finalize @current-view))
-  (reset! current-view res))
 
 (comment
   ;;after at least one graph update
   @current-view
   ;; => #object[View [object Object]]
-  (.finalize @current-view)
-  ;; => #object[View [object Object]]
-
   )
 
 
@@ -78,7 +77,7 @@
                      " points")
                 "point number"
                 "rand number"))
-    {:view-callback finalize!}]])
+    {:view-callback store-view!}]])
 
 
 
