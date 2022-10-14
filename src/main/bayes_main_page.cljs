@@ -8,6 +8,8 @@
 
 (defonce app-state (r/atom {:showing-page 1}))
 
+(defn display [bool comp]
+  [:div {:style {:display (if bool "block" "none")}} comp])
 
 (defn page-navigation []
   (let [anchor (.. js/window -top -location -hash (substr 1))]
@@ -40,13 +42,13 @@
                         :on-click (fn [e]
                                     (swap! app-state assoc-in [:showing-page] 3)
                                     nil)}
-       "Normal Distribution"]
-]
+       "Normal Distribution"]]
      [:> sur/Container {:style {:marginTop "7em"}}
-      (case (:showing-page @app-state)
-        1 [bayes-update/page]
-        2 [sampling-from-posterior/page]
-        3 [normal-distribution/page])]]))
+      (let [current-page (:showing-page @app-state)]
+        [:<> 
+         [display (==  current-page 1) [bayes-update/page]]
+         [display (== current-page 2) [sampling-from-posterior/page]]
+         [display (== current-page 3) [normal-distribution/page]]])]]))
 
 
 (defn ^:dev/after-load start []
