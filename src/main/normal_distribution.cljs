@@ -10,7 +10,7 @@
             [aerial.hanami.templates :as ht]))
 
 
-(defonce app-state (r/atom {:no-of-height-samples 0
+(defonce page-state (r/atom {:no-of-height-samples 0
                             :play-timeout-ID nil
                             :speed 1.0
                             :collapsed
@@ -124,7 +124,7 @@
 (defn heat-maps [no-of-height-samples]
   [:> sur/Container
    [rc/collapsible
-    (r/cursor app-state [:collapsed :prior])
+    (r/cursor page-state [:collapsed :prior])
     "Prior"
     [oz/vega-lite (heat-map-graph "Prior mu = Normal(178,20)"
                                   (map #(assoc %1 :ll %2) grid prior)
@@ -162,16 +162,16 @@
   (update-in state [:no-of-height-samples] dec))
 
 (defn play []
-  (swap! app-state new-random-sample)
-  (swap! app-state assoc-in [:play-timeout-ID]
-         (if (not-reached-sample-limit (:no-of-height-samples @app-state))
-           (js/setTimeout play (js/Math.floor (/ 1000 (:speed @app-state))))
+  (swap! page-state new-random-sample)
+  (swap! page-state assoc-in [:play-timeout-ID]
+         (if (not-reached-sample-limit (:no-of-height-samples @page-state))
+           (js/setTimeout play (js/Math.floor (/ 1000 (:speed @page-state))))
            nil)))
 
 
 (defn pause []
-  (js/clearTimeout (:play-timeout-ID @app-state))
-  (swap! app-state assoc-in [:play-timeout-ID] nil))
+  (js/clearTimeout (:play-timeout-ID @page-state))
+  (swap! page-state assoc-in [:play-timeout-ID] nil))
 
 
 (defn buttons []
@@ -180,40 +180,40 @@
      [:> sur/Container
       [:> sur/Popup {:content tool-tip
                      :trigger (r/as-element
-                               (if (:play-timeout-ID @app-state)
+                               (if (:play-timeout-ID @page-state)
                                  [:> sur/Button
                                   {:onClick (fn []
                                               (pause))}
                                   [:> sur/Icon {:name "pause"}]]
                                  [:> sur/Button
                                   {:onClick (fn []
-                                              (if (not-reached-sample-limit (:samples @app-state))
+                                              (if (not-reached-sample-limit (:samples @page-state))
                                                 nil
-                                                (swap! app-state assoc-in [:samples] []))
+                                                (swap! page-state assoc-in [:samples] []))
                                               (play))}
                                   [:> sur/Icon {:name "play"}]]))}]
       "Speed : "
-      [:input {:type "range" :value (:speed @app-state)  :min 0.5 :max 10 :step 0.5
+      [:input {:type "range" :value (:speed @page-state)  :min 0.5 :max 10 :step 0.5
                :on-change (fn [e]
                             (let [new-value (js/parseFloat (.. e -target -value))]
-                              (swap! app-state assoc-in [:speed] new-value)))}]
-      (str (:speed @app-state) " samples/second")
-      (when (:no-of-height-samples @app-state)
+                              (swap! page-state assoc-in [:speed] new-value)))}]
+      (str (:speed @page-state) " samples/second")
+      (when (:no-of-height-samples @page-state)
         [:> sur/Button
          {:onClick (fn []
-                     (swap! app-state one-less-sample))}
+                     (swap! page-state one-less-sample))}
          "Remove a sample"])
-      (when (:no-of-height-samples @app-state)
+      (when (:no-of-height-samples @page-state)
         [:> sur/Button
          {:onClick (fn []
-                     (swap! app-state assoc-in [:no-of-height-samples] 0))}
+                     (swap! page-state assoc-in [:no-of-height-samples] 0))}
          "Clear samples"])]]))
 
 
 (defn page []
   [:> sur/Container
    [rc/collapsible
-    (r/cursor app-state [:collapsed :question])
+    (r/cursor page-state [:collapsed :question])
     "Question"
     [:> sur/Segment {:raised true}
      [:div [:div.quote
@@ -222,4 +222,4 @@
 Another way to say the above is this. There are an infinite number of possible Gaussian distributions. Some have small means. Others have large means. Some are wide, with a large sd. Others are narrow. We want our Bayesian machine to consider every possible distribution, each defined by a combination of mu and sd, and rank them by posterior plausibility. Posterior plausibility provides a measure of the logical compatibility of each possible distribution with the data and model.\""]
       [:div.attribution "from Richard McElreath's Satistical Rethinking section 4.3"]]]]
    [buttons]
-   [heat-maps (:no-of-height-samples @app-state)]])
+   [heat-maps (:no-of-height-samples @page-state)]])

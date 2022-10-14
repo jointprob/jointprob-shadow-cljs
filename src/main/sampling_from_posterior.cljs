@@ -10,7 +10,7 @@
 
 (defonce ten-thousand-pos-dis-samples (repeatedly 1e4 #(d/sample-posterior samples)))
 
-(defonce app-state (r/atom {:pos-dis-samples []
+(defonce page-state (r/atom {:pos-dis-samples []
                             :play-timeout-ID nil
                             :speed 50
                             :collapsed {:question false
@@ -46,29 +46,29 @@
                        #(d/sample-posterior samples)))))
 
 (defn play []
-  (swap! app-state new-random-samples samples)
-  (swap! app-state assoc-in [:play-timeout-ID]
-         (if (not-reached-sample-limit (:pos-dis-samples @app-state))
+  (swap! page-state new-random-samples samples)
+  (swap! page-state assoc-in [:play-timeout-ID]
+         (if (not-reached-sample-limit (:pos-dis-samples @page-state))
            (js/setTimeout play 1000)
            nil)))
 
 (defn pause []
-  (js/clearTimeout (:play-timeout-ID @app-state))
-  (swap! app-state assoc-in [:play-timeout-ID] nil))
+  (js/clearTimeout (:play-timeout-ID @page-state))
+  (swap! page-state assoc-in [:play-timeout-ID] nil))
 
 (defn buttons []
   (let [tool-tip "Sampling from under the curve of probability density function."]
     [:div#buttons
      [:> sur/Popup {:content tool-tip
                     :trigger (r/as-element
-                              (if (:play-timeout-ID @app-state)
+                              (if (:play-timeout-ID @page-state)
                                 [:> sur/Button
                                  {:onClick pause}
                                  [:> sur/Icon {:name "pause"}]]
                                 [:> sur/Button
                                  {:onClick (fn []
-                                             (when (not (not-reached-sample-limit (:pos-dis-samples @app-state)))
-                                               (swap! app-state assoc-in [:pos-dis-samples] []))
+                                             (when (not (not-reached-sample-limit (:pos-dis-samples @page-state)))
+                                               (swap! page-state assoc-in [:pos-dis-samples] []))
                                              (play))}
                                  [:> sur/Icon {:name "play"}]]))}]
      "Speed : "
@@ -79,13 +79,13 @@
                                {:value 100 :text "100 samples / second"}
                                {:value 200 :text "200 samples / second"}]
 
-                     :value (:speed @app-state)
+                     :value (:speed @page-state)
                      :on-change (fn [_ data]
-                                  (swap! app-state assoc-in [:speed] (.-value data)))}]
-     (when (last (:pos-dis-samples @app-state))
+                                  (swap! page-state assoc-in [:speed] (.-value data)))}]
+     (when (last (:pos-dis-samples @page-state))
        [:> sur/Button
         {:onClick (fn []
-                    (swap! app-state assoc-in [:pos-dis-samples] []))}
+                    (swap! page-state assoc-in [:pos-dis-samples] []))}
         "Clear samples"])]))
 
 (defn pos-dis-samples-graph [pos-dis-samples]
@@ -116,7 +116,7 @@
 (defn page []
   [:> sur/Container
    [rc/collapsible 
-    (r/cursor app-state [:collapsed :question])
+    (r/cursor page-state [:collapsed :question])
     "Question" 
     [:<>
      [:> sur/Segment {:raised true}
@@ -135,7 +135,7 @@
              error."]]]
     [:> sur/Container
      [rc/collapsible
-      (r/cursor app-state [:collapsed :posterior])
+      (r/cursor page-state [:collapsed :posterior])
       "Posterior Distribution"
       [:<>
        [:div "First let's calculate another posterior distribution calculated from 100 random samples,
@@ -148,7 +148,7 @@
             min-loss] (apply min-key second (zipmap d/grid-p (d/linear-loss (d/posterior-distribution samples))))]
        [:<>
         [rc/collapsible
-         (r/cursor app-state [:collapsed :minimizing-loss-function])
+         (r/cursor page-state [:collapsed :minimizing-loss-function])
          "Minimizing our loss function"
          [:<>
           [:> sur/Segment {:raised true}
@@ -183,7 +183,7 @@
        [:p "Theory tells us that the median of these samples will minimize our expected loss, for this linear loss function abs(d - p)."]
        [:p "Press play below to see an animation of taking up to 2,000 samples from the posterior. Hopefully this may aid understanding of what these samples are."]]]
      [buttons]
-     [pos-dis-samples-graph (:pos-dis-samples @app-state)]
+     [pos-dis-samples-graph (:pos-dis-samples @page-state)]
      [pos-dis-samples-graph ten-thousand-pos-dis-samples]
 
 

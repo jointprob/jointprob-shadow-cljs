@@ -8,7 +8,7 @@
             [reagent-custom :as rc]))
 
 
-(defonce app-state (r/atom {:prior "Uniform"
+(defonce page-state (r/atom {:prior "Uniform"
                             :samples []
                             :play-timeout-ID nil
                             :speed 1.0
@@ -42,7 +42,7 @@
         (g/probability-dis
          (g/data d/grid-p (d/posterior-distribution
                            (butlast samples)
-                           (get priors (:prior @app-state))))
+                           (get priors (:prior @page-state))))
          (g/titles prior-title
                    "% of world that is water"
                    (str "Pr(" last-water "," last-land " ⎹ p)")))
@@ -76,7 +76,7 @@
         (g/probability-dis
          (g/data d/grid-p (d/posterior-distribution
                            samples
-                           (get priors (:prior @app-state))))
+                           (get priors (:prior @page-state))))
          (g/titles  "Posterior Pr(p ⎹ W,L)"
                     "% of world that is water"
                     "Pr(p ⎹ W,L)"))]
@@ -117,16 +117,16 @@
 
 
 (defn play []
-  (swap! app-state new-random-sample)
-  (swap! app-state assoc-in [:play-timeout-ID]
-         (if (not-reached-sample-limit (:samples @app-state))
-           (js/setTimeout play (js/Math.floor (/ 1000 (:speed @app-state))))
+  (swap! page-state new-random-sample)
+  (swap! page-state assoc-in [:play-timeout-ID]
+         (if (not-reached-sample-limit (:samples @page-state))
+           (js/setTimeout play (js/Math.floor (/ 1000 (:speed @page-state))))
            nil)))
 
 
 (defn pause []
-  (js/clearTimeout (:play-timeout-ID @app-state))
-  (swap! app-state assoc-in [:play-timeout-ID] nil))
+  (js/clearTimeout (:play-timeout-ID @page-state))
+  (swap! page-state assoc-in [:play-timeout-ID] nil))
 
 
 (defn buttons []
@@ -135,7 +135,7 @@
      [:> sur/Container 
       [:> sur/Popup {:content tool-tip
                      :trigger (r/as-element
-                               (if (:play-timeout-ID @app-state)
+                               (if (:play-timeout-ID @page-state)
                                  [:> sur/Button
                                   {:onClick (fn []
                                               (js/console.log "Pause pressed")
@@ -144,58 +144,58 @@
                                  [:> sur/Button
                                   {:onClick (fn []
                                               (js/console.log "Play pressed")
-                                              (if (not-reached-sample-limit (:samples @app-state))
+                                              (if (not-reached-sample-limit (:samples @page-state))
                                                 nil
-                                                (swap! app-state assoc-in [:samples] []))
+                                                (swap! page-state assoc-in [:samples] []))
                                               (play))}
                                   [:> sur/Icon {:name "play"}]]))}]
       "Speed : "
-      [:input {:type "range" :value (:speed @app-state)  :min 0.5 :max 10 :step 0.5
+      [:input {:type "range" :value (:speed @page-state)  :min 0.5 :max 10 :step 0.5
                :on-change (fn [e]
                             (let [new-value (js/parseFloat (.. e -target -value))]
-                              (swap! app-state assoc-in [:speed] new-value)))}]
-      (str (:speed @app-state) " samples/second")
-      (when (not-reached-sample-limit (:samples @app-state))
+                              (swap! page-state assoc-in [:speed] new-value)))}]
+      (str (:speed @page-state) " samples/second")
+      (when (not-reached-sample-limit (:samples @page-state))
         [:> sur/Popup {:content tool-tip
                        :trigger (r/as-element
                                  [:> sur/Button
-                                  {:onClick (fn [] (swap! app-state new-random-sample))}
+                                  {:onClick (fn [] (swap! page-state new-random-sample))}
                                   "Random sample"])}])
-      (when (not-reached-sample-within-10-of-limit (:samples @app-state))
+      (when (not-reached-sample-within-10-of-limit (:samples @page-state))
         [:> sur/Popup {:content tool-tip
                        :trigger (r/as-element
                                  [:> sur/Button
-                                  {:onClick (fn [] (swap! app-state ten-new-random-samples))}
+                                  {:onClick (fn [] (swap! page-state ten-new-random-samples))}
                                   "x 10"])}])
-      (when (not-reached-sample-limit (:samples @app-state))
+      (when (not-reached-sample-limit (:samples @page-state))
         [:> sur/Button
-         {:onClick (fn [] (swap! app-state user-sample :w))}
+         {:onClick (fn [] (swap! page-state user-sample :w))}
          ":w"])
-      (when (not-reached-sample-limit (:samples @app-state))
+      (when (not-reached-sample-limit (:samples @page-state))
         [:> sur/Button
-         {:onClick (fn [] (swap! app-state user-sample :l))}
+         {:onClick (fn [] (swap! page-state user-sample :l))}
          ":l"])]
      [:> sur/Container 
-      (when (last (:samples @app-state))
+      (when (last (:samples @page-state))
         [:> sur/Button
          {:onClick (fn []
-                     (js/console.log (str "Remove 1 sample " (:samples @app-state)))
-                     (swap! app-state one-less-sample))}
+                     (js/console.log (str "Remove 1 sample " (:samples @page-state)))
+                     (swap! page-state one-less-sample))}
          "Remove a sample"])
-      (when (>= (count (:samples @app-state)) 10)
+      (when (>= (count (:samples @page-state)) 10)
         [:> sur/Button
-         {:onClick (fn [] (swap! app-state ten-less-samples))}
+         {:onClick (fn [] (swap! page-state ten-less-samples))}
          "x 10"])
-      (when (last (:samples @app-state))
+      (when (last (:samples @page-state))
         [:> sur/Button
          {:onClick (fn []
-                     (js/console.log (str "Clear samples " (:samples @app-state)))
-                     (swap! app-state assoc-in [:samples] []))}
+                     (js/console.log (str "Clear samples " (:samples @page-state)))
+                     (swap! page-state assoc-in [:samples] []))}
          "Clear samples"])]]))
 
 
 (defn page []
-  (let [[n land water] (d/count-land-or-water (:samples @app-state))
+  (let [[n land water] (d/count-land-or-water (:samples @page-state))
         permutations (str "Number of possible sequences of "
                           water
                           " water sample"
@@ -207,7 +207,7 @@
                           " = ")]
     [:> sur/Container
      [rc/collapsible
-      (r/cursor app-state [:collapsed :question])
+      (r/cursor page-state [:collapsed :question])
       "Question"
       [:> sur/Segment {:raised true}
        [:div [:div.quote 
@@ -220,32 +220,32 @@
        from the globe.\""]
         [:div.attribution "from Richard McElreath's Satistical Rethinking section 2.2"]]]]
      [rc/collapsible
-      (r/cursor app-state [:collapsed :prior])
+      (r/cursor page-state [:collapsed :prior])
       "Prior"
       [:div
 
        [:label "Prior before any data "]
        (into (vector)
              (concat [:select.form-control {:field :list
-                                            :value (:prior @app-state)
+                                            :value (:prior @page-state)
                                             :id :many.options
-                                            :on-change #(swap! app-state assoc-in
+                                            :on-change #(swap! page-state assoc-in
                                                                [:prior]
                                                                (.. % -target -value))}]
                      (map #(vector :option {:key (first %)} (first %)) priors)))
        [:div
         [oz/vega-lite (g/probability-dis
                        (g/data d/grid-p
-                               (get priors (:prior @app-state)))
+                               (get priors (:prior @page-state)))
                        (g/titles "Prior before any data"
                                  "% of world that is water"
                                  "Pr(p)"))]]]]
      [buttons]
      [rc/collapsible
-      (r/cursor app-state [:collapsed :formulae])
+      (r/cursor page-state [:collapsed :formulae])
        "Formulae"
        [:div
-        [:p (str "Samples:  " (:samples @app-state))]
+        [:p (str "Samples:  " (:samples @page-state))]
         [:p "W = " water " ;  L = " land]
         [:p
          "Probability of this (W,L) sequence of samples = "
@@ -280,4 +280,4 @@
          [:> mj/MathComponent {:tex "\\frac{Pr(W, L \\mid p) Pr(p)}{Pr(W, L)}" :display false}]
          " where "
          [:> mj/MathComponent {:tex "\\text { Average probability of the data} = Pr(W, L) = \\int _0 ^1 {Pr(W, L \\mid p) Pr(p)}dp" :display false}]]]]
-     [oz/vega-lite (graph-posterior-dis (:samples @app-state))]]))
+     [oz/vega-lite (graph-posterior-dis (:samples @page-state))]]))
