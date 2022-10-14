@@ -6,7 +6,7 @@
  :builds {:bayes {:output-dir "public/js/compiled"
                   :asset-path "/js/compiled"
                   :target     :browser
-                  :modules {:bayes {:init-fn bayes/init}}}
+                  :modules {:bayes {:init-fn bayes-main-page/init}}}
           :memory-efficiency {:output-dir "public/js/compiled"
                               :asset-path "/js/compiled"
                               :target     :browser

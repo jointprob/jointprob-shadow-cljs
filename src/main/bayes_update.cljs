@@ -87,6 +87,8 @@
        [{:hconcat [n-graph prior-before-this-sample-graph]}
         {:hconcat [rlikelihood-graph-one-perm rlikelihood-graph-all-perms pos-graph]}])}))
 
+;; functionality to respond to button presses
+
 (def max-samples 200)
 
 (defn not-reached-sample-within-10-of-limit [samples]
@@ -98,9 +100,8 @@
 (defn new-random-sample [{:keys [samples] :as state}]
   (assoc-in state [:samples] (conj samples (if (>= 0.6 (rand)) :w :l))))
 
-(defn ten-new-random-samples [{:keys [samples] :as state}]
-  (assoc-in state [:samples] (into [] (concat samples (repeatedly 10 #(if (>= 0.6 (rand)) :w :l))))))
-
+(defn ten-new-random-samples [state]
+  (reduce (fn [arg1 _] (new-random-sample arg1)) state (range 10)))
 
 (defn user-sample [{:keys [samples] :as state} water-or-land]
   (assoc-in state [:samples] (conj samples water-or-land)))

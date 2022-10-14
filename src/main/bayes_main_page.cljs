@@ -1,4 +1,4 @@
-(ns bayes
+(ns bayes-main-page
   (:require [reagent.dom :as rdom]
             [bayes-update]
             [sampling-from-posterior]
