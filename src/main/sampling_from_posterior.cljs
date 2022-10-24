@@ -1,6 +1,6 @@
 (ns sampling-from-posterior
   (:require [reagent.core :as r]
-            [oz.core :as oz]
+            [react-vega]
             [graphs :as g]
             [dbinomial :as d]
             [semantic-ui-react :as sur]
@@ -92,26 +92,27 @@
   (let [binned (frequencies (map d/round-number-to-grid pos-dis-samples))
         zeroes (zipmap d/grid-p (repeat 0))
         zeroes-added (apply conj zeroes binned)]
-    [oz/vega-lite
-     {:hconcat
-      [(g/point-chart
-        (g/data (range 0 (count pos-dis-samples)) pos-dis-samples)
-        (g/titles  (str (count pos-dis-samples)
-                       " Samples from Posterior")
-                   "sample number"
-                   "% of world that is water"))
-       (g/point-chart
-        (g/mark-properties {:size 10 :opacity 1})
-        (g/data (keys zeroes-added) (vals zeroes-added))
-        (g/titles  "Count of Samples in 200 Bins"
-                   "% of world that is water"
-                   "Count"))
-       (g/point-chart
-        (g/mark-properties {:size 10 :opacity 1})
-        (g/data (keys zeroes-added) (d/standardize (vals zeroes-added)))
-        (g/titles  "Standardize Counts to Average 1"
-                   "% of world that is water"
-                   "Sample Density"))]}]))
+    [:> react-vega/VegaLite
+     {:spec
+      {:hconcat
+       [(g/point-chart
+         (g/data (range 0 (count pos-dis-samples)) pos-dis-samples)
+         (g/titles  (str (count pos-dis-samples)
+                         " Samples from Posterior")
+                    "sample number"
+                    "% of world that is water"))
+        (g/point-chart
+         (g/mark-properties {:size 10 :opacity 1})
+         (g/data (keys zeroes-added) (vals zeroes-added))
+         (g/titles  "Count of Samples in 200 Bins"
+                    "% of world that is water"
+                    "Count"))
+        (g/point-chart
+         (g/mark-properties {:size 10 :opacity 1})
+         (g/data (keys zeroes-added) (d/standardize (vals zeroes-added)))
+         (g/titles  "Standardize Counts to Average 1"
+                    "% of world that is water"
+                    "Sample Density"))]}}]))
 
 (defn page []
   [:> sur/Container
@@ -141,7 +142,7 @@
        [:div "First let's calculate another posterior distribution calculated from 100 random samples,
            the probability of each of these samples being :w is 0.6 (which is the unobserved parameter 
            we are trying to estimate by Bayesian inference)."]
-       [oz/vega-lite (graph-posterior-dis)]]]
+       [:> react-vega/VegaLite {:spec (graph-posterior-dis)}]]]
      (let [pos-dis (d/posterior-distribution samples)
            loss (d/linear-loss pos-dis)
            [d-for-min-loss
@@ -169,13 +170,14 @@
              [:strong " a minimum of "
               (.toFixed min-loss 6) " when d is " d-for-min-loss] "."]]]
 
-          [oz/vega-lite
-           {:layer [(g/line-chart
-                     (g/data d/grid-p
-                             loss)
-                     (g/titles  "Expected Loss"
-                                "decision"
-                                "expected loss"))]}]]]])
+          [:> react-vega/VegaLite
+           {:spec
+            {:layer [(g/line-chart
+                      (g/data d/grid-p
+                              loss)
+                      (g/titles  "Expected Loss"
+                                 "decision"
+                                 "expected loss"))]}}]]]])
      [:> sur/Segment {:raised true}
       [:div [:p "We can also use samples from the posterior distribution to estimate what value for d will give us the least expected loss.
                     We'll take 10,000 samples from the posterior distribution to simulate what the value of p might be, samples of these p values

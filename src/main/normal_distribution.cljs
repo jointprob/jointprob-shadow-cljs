@@ -1,7 +1,7 @@
 (ns normal-distribution
   (:require [dbinomial :as d]
             [graphs :as g]
-            [oz.core :as oz]
+            [react-vega]
             [reagent.core :as r]
             [semantic-ui-react :as sur]
             [reagent-custom :as rc]
@@ -126,30 +126,32 @@
    [rc/collapsible
     (r/cursor page-state [:collapsed :prior])
     "Prior"
-    [oz/vega-lite (heat-map-graph "Prior mu = Normal(178,20)"
-                                  (map #(assoc %1 :ll %2) grid prior)
-                                  "Prior")]]
-   [oz/vega-lite
-    (hc/xform
-     ht/hconcat-chart
-     :HCONCAT
-     [(heat-map-graph (str "Probability density for " no-of-height-samples " heights.")
-                      (map
-                       #(assoc %1 :ll %2)
-                       grid
-                       (nth posteriors no-of-height-samples)))
-      (heat-map-graph (str "Relative likelihood of height "
-                           (inc no-of-height-samples) " = "
-                           (nth adult-heights no-of-height-samples))
-                      (map
-                       #(assoc %1 :ll %2)
-                       grid
-                       (nth relative-likelihood-for-grid-for-all-h no-of-height-samples)))
-      (heat-map-graph (str "Probability density for " (inc no-of-height-samples) " heights.")
-                      (map
-                       #(assoc %1 :ll %2)
-                       grid
-                       (nth posteriors (inc no-of-height-samples))))])]])
+    [:> react-vega/VegaLite
+     {:spec (heat-map-graph "Prior mu = Normal(178,20)"
+                            (map #(assoc %1 :ll %2) grid prior)
+                            "Prior")}]]
+   [:> react-vega/VegaLite
+    {:spec
+     (hc/xform
+      ht/hconcat-chart
+      :HCONCAT
+      [(heat-map-graph (str "Probability density for " no-of-height-samples " heights.")
+                       (map
+                        #(assoc %1 :ll %2)
+                        grid
+                        (nth posteriors no-of-height-samples)))
+       (heat-map-graph (str "Relative likelihood of height "
+                            (inc no-of-height-samples) " = "
+                            (nth adult-heights no-of-height-samples))
+                       (map
+                        #(assoc %1 :ll %2)
+                        grid
+                        (nth relative-likelihood-for-grid-for-all-h no-of-height-samples)))
+       (heat-map-graph (str "Probability density for " (inc no-of-height-samples) " heights.")
+                       (map
+                        #(assoc %1 :ll %2)
+                        grid
+                        (nth posteriors (inc no-of-height-samples))))])}]])
 
 (defn not-reached-sample-limit [no-of-height-samples]
   (< no-of-height-samples (count adult-heights)))

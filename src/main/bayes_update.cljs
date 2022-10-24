@@ -2,7 +2,7 @@
   (:require [dbinomial :as d]
             [graphs :as g]
             [mathjax-react :as mj]
-            [oz.core :as oz]
+            [react-vega]
             [reagent.core :as r]
             [semantic-ui-react :as sur]
             [reagent-custom :as rc]))
@@ -234,12 +234,14 @@
                                                                (.. % -target -value))}]
                      (map #(vector :option {:key (first %)} (first %)) priors)))
        [:div
-        [oz/vega-lite (g/probability-dis
-                       (g/data d/grid-p
-                               (get priors (:prior @page-state)))
-                       (g/titles "Prior before any data"
-                                 "% of world that is water"
-                                 "Pr(p)"))]]]]
+        [:> react-vega/VegaLite
+         {:spec
+          (g/probability-dis
+           (g/data d/grid-p
+                   (get priors (:prior @page-state)))
+           (g/titles "Prior before any data"
+                     "% of world that is water"
+                     "Pr(p)"))}]]]]
      [buttons]
      [rc/collapsible
       (r/cursor page-state [:collapsed :formulae])
@@ -280,4 +282,5 @@
          [:> mj/MathComponent {:tex "\\frac{Pr(W, L \\mid p) Pr(p)}{Pr(W, L)}" :display false}]
          " where "
          [:> mj/MathComponent {:tex "\\text { Average probability of the data} = Pr(W, L) = \\int _0 ^1 {Pr(W, L \\mid p) Pr(p)}dp" :display false}]]]]
-     [oz/vega-lite (graph-posterior-dis (:samples @page-state))]]))
+     [:> react-vega/VegaLite
+      {:spec (graph-posterior-dis (:samples @page-state))}]]))
