@@ -10,4 +10,8 @@
           :memory-efficiency {:output-dir "public/js/compiled"
                               :asset-path "/js/compiled"
                               :target     :browser
-                              :modules {:memory-efficiency {:init-fn memory-efficiency/init}}}}}
+                              :modules {:memory-efficiency {:init-fn memory-efficiency/init}}}
+          :memory-efficiency-2 {:output-dir "public/js/compiled"
+                               :asset-path "/js/compiled"
+                               :target     :browser
+                               :modules {:memory-efficiency-2 {:init-fn memory-efficiency-2/init}}}}}

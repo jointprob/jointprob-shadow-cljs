@@ -8,7 +8,7 @@
        dbinomial/posterior-distribution
        (apply max))
   (->> (repeatedly 100 #(if (>= 0.6 (rand)) :w :l))
-       d/count-land-or-water)
+       dbinomial/count-land-or-water)
   (def samples (repeatedly 100 #(if (>= 0.6 (rand)) :w :l)))
   (->> (repeatedly 100 #(if (>= 0.6 (rand)) :w :l))
        dbinomial/sample-posterior)

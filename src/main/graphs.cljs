@@ -17,11 +17,19 @@
    :encoding {:x {:title x-title}
               :y {:title y-title}}})
 
-(defn data
+(defn values
   ([xs]
-   {:data {:values (map #(hash-map :x %1) xs)}})
+   (map #(hash-map :x %1) xs))
   ([xs ys]
-   {:data {:values (map #(hash-map :x %1 :y %2) xs ys)}}))
+   (map #(hash-map :x %1 :y %2) xs ys)))
+
+(defn data [& args]
+  {:data {:values (apply values args)}})
+  
+
+(defn data-name [name]
+  {:data {:name name}})
+
 
 (defn density-transform [bandwidth extent]
   {:transform [{
