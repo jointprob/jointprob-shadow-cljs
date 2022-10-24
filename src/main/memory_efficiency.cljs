@@ -8,9 +8,11 @@
                             :play-timeout-ID nil
                             :speed 50}))
 
-(def current-view (r/atom nil))
-(defn store-view! [res]
-  (reset! current-view res))
+(def current-view (atom nil))
+
+(defn store-view! [view]
+  (js/console.log "store current view")
+  (reset! current-view view))
 
 
 (def max-no-of-points 10000)
@@ -19,6 +21,7 @@
 
 (defn play []
   (when @current-view
+    (js/console.log "calling finalize")
     (.finalize @current-view))
   (swap! app-state (fn [{:keys [no-of-points speed] :as state}]
                      (-> (assoc-in state [:no-of-points] (min (+ no-of-points speed) max-no-of-points))
