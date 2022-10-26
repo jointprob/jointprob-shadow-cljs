@@ -1,28 +1,28 @@
 (ns memory-efficiency
   (:require [reagent.dom :as rdom]
             [reagent.core :as r]
-            [oz.core :as oz]
+            [me-vega]
             [graphs :as g]))
 
 (defonce app-state (r/atom {:no-of-points 0
                             :play-timeout-ID nil
                             :speed 50}))
 
-(def current-view (atom nil))
+(def current-result (atom nil))
 
-(defn store-view! [view]
+(defn store-result! [result]
   (js/console.log "store current view")
-  (reset! current-view view))
+  (reset! current-result result))
 
 
-(def max-no-of-points 10000)
+(def max-no-of-points 100000)
 
 (defonce points (repeatedly max-no-of-points rand))
 
 (defn play []
-  (when @current-view
+  (when @current-result
     (js/console.log "calling finalize")
-    (.finalize @current-view))
+    (.finalize @current-result))
   (swap! app-state (fn [{:keys [no-of-points speed] :as state}]
                      (-> (assoc-in state [:no-of-points] (min (+ no-of-points speed) max-no-of-points))
                          (assoc-in [:play-timeout-ID] (if (< (+ no-of-points speed) max-no-of-points)
@@ -65,7 +65,7 @@
 
 (comment
   ;;after at least one graph update
-  @current-view
+  @current-result
   ;; => #object[View [object Object]]
   )
 
@@ -73,14 +73,14 @@
 (defn page []
   [:div
    [buttons]
-   [oz/vega-lite
+   [me-vega/vega-lite
     (g/point-chart
      (g/data (range) (take (:no-of-points @app-state) points))
      (g/titles  (str (:no-of-points @app-state)
                      " points")
                 "point number"
                 "rand number"))
-    {:view-callback store-view!}]])
+    {:result-callback store-result!}]])
 
 
 
