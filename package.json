@@ -1,9 +1,11 @@
 {
   "name": "jointprob-shadow-cljs",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "devDependencies": {
-    "shadow-cljs": "2.19.9"
+    "concurrently": "^6.4.0",
+    "sass": "^1.55.0",
+    "shadow-cljs": "2.16.5"
   },
   "dependencies": {
     "mathjax-full": "^3.2.2",
@@ -16,5 +18,9 @@
     "vega": "^5.22.1",
     "vega-embed": "^6.21.0",
     "vega-lite": "^5.6.0"
+  },
+  "scripts": {
+    "watch:sass": "sass --watch src/sass/:public/css/",
+    "build:sass": "sass src/sass/:public/css/  --style compressed"
   }
 }

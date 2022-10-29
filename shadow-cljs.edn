@@ -1,7 +1,9 @@
 ;; shadow-cljs configuration
-{:deps true
+{:deps {:aliases [:dev :common :frontend]}
 
  :dev-http {8700 "public"}
+
+ :aliases {:cider {:extra-deps {cider/cider-nrepl {:mvn/version "0.28.5"}}}}
 
  :builds {:bayes {:output-dir "public/js/compiled"
                   :asset-path "/js/compiled"

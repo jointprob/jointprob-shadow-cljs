@@ -47,6 +47,8 @@ jobs:
         # uses: DeLaGuardo/setup-clojure@05cb4bfdf57855f122e75b71e45224775cdfc4a0
       - name: shadow-cljs release build 
         run: npx shadow-cljs release :bayes :memory-efficiency :memory-efficiency-2
+      - name: build css
+        run: npm run build:sass
       - name: Setup Github Pages
         id: pages
         uses: actions/configure-pages@v2

@@ -24,7 +24,11 @@ npm install
 
 ## Cider on Emacs
 
-* Similar to above?
+* Similar to above
+
+# CSS build
+
+Optionally install `just` or just refer to Justfile
 
 # Automatic deployal to github page
 

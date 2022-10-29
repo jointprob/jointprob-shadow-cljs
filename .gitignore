@@ -1,10 +1,6 @@
 node_modules/
 public/js
 
-/target
-/checkouts
-/src/gen
-
 pom.xml
 pom.xml.asc
 *.iml
